@@ -1,0 +1,192 @@
+const core = require('@actions/core');
+const github = require('@actions/github');
+const { graphql } = require('@octokit/graphql');
+const { format, utcToZonedTime } = require('date-fns-tz');
+const axios = require('axios');
+
+const ghToken = core.getInput('github-token');
+const owner = github.context.repo.owner;
+const repo = github.context.repo.repo;
+let ghLogin = core.getInput('github-login');
+
+if (!ghLogin || ghLogin.length === 0) ghLogin = 'github-actions';
+
+const octokit = github.getOctokit(ghToken);
+const graphqlWithAuth = graphql.defaults({
+  headers: {
+    authorization: `token ${ghToken}`
+  }
+});
+
+async function findTheIssueForThisDeploymentByTitle(issueToUpdate, projectBoardId) {
+  try {
+    core.startGroup(`Retrieving the issue by title: '${issueToUpdate.title}'...`);
+    const query = `
+    query {
+      repository(owner: "${owner}", name: "${repo}") {
+        issues(last: 100, orderBy: {field: UPDATED_AT direction: DESC} filterBy: {mentioned: "${ghLogin}" states: [OPEN]}) {
+          edges {
+            node {
+              title
+              number
+              state
+              body
+              labels(first: 100) {
+                edges {
+                  node {
+                    name
+                  }
+                }
+              }
+              projectCards {
+                edges {
+                  node {
+                    databaseId
+                    project {
+                      databaseId  
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }`;
+
+    const response = await graphqlWithAuth(query);
+    if (!response.repository.issues || !response.repository.issues.edges || response.repository.issues.edges.length === 0) {
+      core.info('No Issues were found.');
+      core.endGroup();
+      return;
+    }
+
+    //Take the first one that matches the title, it should be the most recent.
+    const existingIssue = response.repository.issues.edges.find(issue => issue.node.title.toLowerCase() === issueToUpdate.title.toLowerCase());
+    if (!existingIssue) {
+      core.info(`An issue with the title '${issueToUpdate.title}' was not found.`);
+      core.endGroup();
+      return;
+    }
+
+    issueToUpdate.number = existingIssue.node.number;
+    issueToUpdate.body = existingIssue.node.body;
+    issueToUpdate.state = existingIssue.node.state;
+    core.info(`The issue was found:'#${issueToUpdate.number} ${issueToUpdate.title}': `);
+
+    if (existingIssue.node.labels && existingIssue.node.labels.edges && existingIssue.node.labels.edges.length > 0) {
+      issueToUpdate.labels = existingIssue.node.labels.edges.map(l => l.node.name);
+    }
+
+    if (!existingIssue.node.projectCards || !existingIssue.node.projectCards.edges || existingIssue.node.projectCards.edges.length === 0) {
+      core.info('The issue does not have a project card associated with it.');
+      core.endGroup();
+      return;
+    }
+
+    //The issue can't exist on the same board twice, so find the first
+    const projectCard = existingIssue.node.projectCards.edges.find(pc => pc.node.project && pc.node.project.databaseId == projectBoardId);
+    issueToUpdate.projectCardId = projectCard.node.databaseId;
+    core.info(`A project card was found for '#${issueToUpdate.number} ${issueToUpdate.title}': ${issueToUpdate.projectCardId}`);
+    core.endGroup();
+  } catch (error) {
+    core.setFailed(`An error occurred retrieving the issues: ${error}`);
+    core.endGroup();
+    throw error;
+  }
+}
+
+function getDateString() {
+  let nowString;
+  let timezone = core.getInput('timezone');
+  if (timezone && timezone.length > 0) {
+    let now = utcToZonedTime(new Date(), timezone);
+    nowString = `${format(now, 'MMM dd, yyyy hh:mm a OOOO', { timeZone: timezone })}`;
+  } else {
+    let now = new Date();
+    nowString = format(now, 'MMM dd, yyyy hh:mm a OOOO');
+  }
+  core.info(`The date for this deployment is ${nowString}`);
+  return nowString;
+}
+
+async function createAnIssueForThisDeploymentIfItDoesNotExist(issueToUpdate, labels, project, actor) {
+  try {
+    core.startGroup(`Creating an issue for this deployment since it does not exist...`);
+    let workflowUrl = `[${github.context.runNumber}](https://github.com/${owner}/${repo}/actions/runs/${github.context.runId})`;
+    let nowString = getDateString();
+
+    let body = `|Env|Workflow|Status|Date|Actor|
+|---|---|---|---|---|
+|${project.columnName}|${workflowUrl}|${labels.deployStatus}|${nowString}|${actor}|`;
+
+    const { data: response } = await octokit.rest.issues.create({
+      owner,
+      repo,
+      title: issueToUpdate.title,
+      body,
+      labels: [labels.currentlyInEnv, labels.deployStatus]
+    });
+    core.info(`The issue was created successfully: ${response.number}`);
+
+    //Store the values
+    issueToUpdate.number = response.number;
+    issueToUpdate.nodeId = response.node_id;
+    issueToUpdate.body = body;
+    issueToUpdate.state = 'OPEN';
+
+    //Add the autogenerated comment which will allow us to better target issues we're searching through
+    core.info(`Adding a comment to the issue indicating it was auto-generated by @${ghLogin}...`);
+    await octokit.rest.issues.createComment({
+      owner,
+      repo,
+      issue_number: response.number,
+      body: `*This issue was auto-generated by @${ghLogin} for deployment tracking on the [${project.name}](${project.link})*`
+    });
+    core.info(`The auto-generated comment was sucessfully added to the issue.`);
+    core.endGroup();
+  } catch (error) {
+    core.setFailed(`An error occurred creating the '${issueToUpdate}' issue: ${error}`);
+    core.endGroup();
+    throw error;
+  }
+}
+
+async function appendDeploymentDetailsToIssue(issueToUpdate, project, actor, deployStatus) {
+  try {
+    core.startGroup(`Appending the deployment details to the issue...`);
+
+    let workflowUrl = `[${github.context.workflow} #${github.context.runNumber}](https://github.com/${owner}/${repo}/actions/runs/${github.context.runId})`;
+    let nowString = getDateString();
+    let bodyText = `${issueToUpdate.body}\n|${project.columnName}|${workflowUrl}|${deployStatus}|${nowString}|${actor}|`;
+
+    //The octokit call was leaving the issue number off the url so it would not succeed.  Using axios instead.
+    let request = {
+      title: issueToUpdate.title,
+      body: bodyText
+    };
+
+    await axios({
+      method: 'PATCH',
+      url: `https://api.github.com/repos/${owner}/${repo}/issues/${issueToUpdate.number}`,
+      headers: {
+        'content-type': 'application/json',
+        authorization: `token ${ghToken}`,
+        accept: 'application/vnd.github.v3+json'
+      },
+      data: JSON.stringify(request)
+    });
+    core.info(`The deployment details were successfully added to the issue.`);
+    core.endGroup();
+  } catch (error) {
+    //Don't immediately fail by throwing, let it see what else it can finish.
+    core.setFailed(`An error occurred appending the deployment details to the issue: ${error}`);
+    core.endGroup();
+  }
+}
+
+module.exports = {
+  findTheIssueForThisDeploymentByTitle,
+  createAnIssueForThisDeploymentIfItDoesNotExist,
+  appendDeploymentDetailsToIssue
+};
