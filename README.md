@@ -86,27 +86,33 @@ jobs:
         
         # Defaults to using github-actions for the login, regex matching to determine the ref-type and times shown in UTC
       - name: Update deployment board with Defaults
+        id: defaults
         continue-on-error: true                             # Setting to true so the job doesn't fail if updating the board fails.
         uses: im-open/update-deployment-board@v1.0.0
         with:
           github-token: ${{ secrets.GITHUB_TOKEN}}          # If a different token is used, update github-login with the corresponding account
-          environment: 'Dev'
+          environment: 'QA'
           board-number: 1
           ref: ${{ github.event.inputs.branchTagOrSha }}
           deploy-status: ${{ steps.deploy-to-qa.outcome }}  # outcome is the result of the step before continue-on-error is applied
       
       - name: Update deployment board with all values provided
+        id: provided
         continue-on-error: true                             # Setting to true so the job doesn't fail if updating the board fails.
         uses: im-open/update-deployment-board@v1.0.0
         with:
           github-token: ${{ secrets.BOT_TOKEN}}             # If a different token is used, update github-login with the corresponding account
           github-login: 'my-bot'
           environment: 'QA'
-          board-number: 2
+          board-number: 1
           ref: 'feature-branch-16'
           ref-type: 'branch' 
           deploy-status: ${{ steps.deploy-to-qa.outcome }}  # outcome is the result of the step before continue-on-error is applied
           timezone: 'america/denver'
+      
+      - name: Now Fail the job if the deploy step failed 
+        if: steps.deploy-to-qa.outcome == 'failure' 
+        run: exit 1
 ```
 
 ## Recompiling
