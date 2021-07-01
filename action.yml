@@ -3,17 +3,31 @@ name: 'JavaScript Action Template'
 description: 'Add description here'
 
 inputs:
-  input-1:
-    description: 'Add a description here'
+  github-token:
+    description: 'A token with permissions to create and update issues'
     required: true
-  input-2:
-    description: 'Add a description here'
+  github-login:
+    description: 'The login associated with the github-token.  Defaults to github-actions'
+    required: true
+    default: 'github-actions'
+  environment:
+    description: 'The environment the branch, tag or SHA was deployed to'
+    required: true
+  board-number:
+    description: 'The number of the project board that will be updated.  Found by using the number in the board url.'
+    required: true
+  ref:
+    description: 'The branch, tag or SHA that was deployed'
+    required: true
+  ref-type:
+    description: 'The type of ref that was deployed  [branch|tag|sha].  If not provided the action will use some regex patterns to identify the type.'
     required: false
-
-outputs:
-  output-1:
-    description: 'Add a description here'
-
+  deploy-status:
+    description: 'The status of the deployment [success|failure|cancelled|skipped]'
+    required: true
+  timezone:
+    description: 'IANA time zone name (e.g. America/Denver) to display dates in.  If timezone is not provided, dates will be shown in UTC'
+    required: false
 runs:
   using: 'node12'
   main: 'dist/index.js'
