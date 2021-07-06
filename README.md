@@ -28,6 +28,10 @@ Before using this action, a Project board must be set up.
 If the repository has multiple deployables, like a database and app service, separate boards can be set up for each.
 
 ## Action Conventions
+- This action can be used in conjunction with [cleanup-deployment-board] so the project board only shows the most current items.
+- The issues and cards on the Automated Deployment board are intended to be handled by this action and the [cleanup-deployment-board] action only.  Modifying any of the issues or cards that back the project board may result in unexpected results.
+  - The cleanup action relies on modified dates to determine which cards should be kept.  If issues are manually modified the cleanup might close unexpected items.
+  - The cleanup action searches for Deployment Issues and finds the project card for the respective issue.  If issues are closed manually the corresponding card won't be cleaned up.  
 - The action assumes the repository where issues are created and updated is the repository where the action is run.
 - The action will check to see if certain labels exist in the repository and create them if they don't.
 - When an issue is generated a comment is added tagging the GitHub login responsible for creating that issue, this defaults to `@github-actions` unless another login is specified.  The intent of this comment is to cut down on the number of issues and data the action has to process when looking for an existing issue to update.  
@@ -68,14 +72,11 @@ on:
       branchTagOrSha:
         description: 'The branch, tag or sha to deploy '
         required: false
-      refType:
-        description: 'The ref type (branch, tag, sha)'
-        required: false  
 
 jobs:
   environment: 'QA'
   deploy-different-ways:
-    runs-on: [self-hosted, ubuntu-20.04]
+    runs-on: [ubuntu-20.04]
     steps:
       - uses: actions/checkout@v2
 
@@ -88,7 +89,7 @@ jobs:
       - name: Update deployment board with Defaults
         id: defaults
         continue-on-error: true                             # Setting to true so the job doesn't fail if updating the board fails.
-        uses: im-open/update-deployment-board@v1.0.0
+        uses: im-open/update-deployment-board@v1.0.1
         with:
           github-token: ${{ secrets.GITHUB_TOKEN}}          # If a different token is used, update github-login with the corresponding account
           environment: 'QA'
@@ -99,9 +100,9 @@ jobs:
       - name: Update deployment board with all values provided
         id: provided
         continue-on-error: true                             # Setting to true so the job doesn't fail if updating the board fails.
-        uses: im-open/update-deployment-board@v1.0.0
+        uses: im-open/update-deployment-board@v1.0.1
         with:
-          github-token: ${{ secrets.BOT_TOKEN}}             # If a different token is used, update github-login with the corresponding account
+          github-token: ${{ secrets.BOT_TOKEN}}             # Since a different token is used, the github-login should be set to the corresponding acct
           github-login: 'my-bot'
           environment: 'QA'
           board-number: 1
@@ -139,3 +140,4 @@ This project has adopted the [im-open's Code of Conduct](https://github.com/im-o
 Copyright &copy; 2021, Extend Health, LLC. Code released under the [MIT license](LICENSE).
 
 [the board]: https://github.com/im-open/update-deployment-board/projects/1
+[cleanup-deployment-board]: https://github.com/im-open/cleanup-deployment-board
