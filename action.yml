@@ -1,6 +1,6 @@
-name: 'JavaScript Action Template'
+name: 'Update Deployment Board'
 
-description: 'Add description here'
+description: 'Adds deployment Issues to an Automated Deployment Project Board for visual tracking of what has been deployed to each environment.'
 
 inputs:
   github-token:
