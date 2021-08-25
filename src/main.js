@@ -1,6 +1,6 @@
 const core = require('@actions/core');
 const github = require('@actions/github');
-const { getProjectData, createProjectCard, cleanupProjectBoard, moveCardToColumn } = require('./projects.js');
+const { getProjectData, createProjectCard, moveCardToColumn } = require('./projects.js');
 const {
   findIssuesWithLabel,
   removeLabelFromIssue,
@@ -102,11 +102,17 @@ async function run() {
 
   await findTheIssueForThisDeploymentByTitle(issueToUpdate, project.id);
 
-  const issuesWithCurrentlyInEnvLabel = await findIssuesWithLabel(labels.currentlyInEnv);
-  if (issuesWithCurrentlyInEnvLabel) {
-    for (let index = 0; index < issuesWithCurrentlyInEnvLabel.length; index++) {
-      const issueNumber = issuesWithCurrentlyInEnvLabel[index];
-      await removeLabelFromIssue(labels.currentlyInEnv, issueNumber);
+  //We only want to remove the currently-in-* label if the status was success or failure.
+  //If the status was cancelled or skipped, we don't really know what is currently where so don't change anything.
+  let workflowFullyRan = labels.deployStatus === 'success' || labels.deployStatus === 'failure';
+
+  if (workflowFullyRan) {
+    const issuesWithCurrentlyInEnvLabel = await findIssuesWithLabel(labels.currentlyInEnv);
+    if (issuesWithCurrentlyInEnvLabel) {
+      for (let index = 0; index < issuesWithCurrentlyInEnvLabel.length; index++) {
+        const issueNumber = issuesWithCurrentlyInEnvLabel[index];
+        await removeLabelFromIssue(labels.currentlyInEnv, issueNumber);
+      }
     }
   }
 
@@ -115,19 +121,20 @@ async function run() {
   } else {
     await appendDeploymentDetailsToIssue(issueToUpdate, project, actor, labels.deployStatus);
     await removeStatusLabelsFromIssue(issueToUpdate.labels, issueToUpdate.number, labels.deployStatus);
-    await addLabelToIssue(labels.currentlyInEnv, issueToUpdate.number);
     await addLabelToIssue(labels.deployStatus, issueToUpdate.number);
+
+    if (workflowFullyRan) {
+      await addLabelToIssue(labels.currentlyInEnv, issueToUpdate.number);
+    }
   }
 
   if (issueToUpdate.projectCardId === 0) {
     await createProjectCard(issueToUpdate.nodeId, project.columnNodeId);
-  } else {
+  } else if (workflowFullyRan) {
     await moveCardToColumn(issueToUpdate.projectCardId, project.columnName, project.columnId);
   }
 
-  //TODO: Date label?
-  //TODO: Rollback label?
-  cleanupProjectBoard();
+  core.info(`See the project board at: ${project.link}`);
 }
 
 try {
