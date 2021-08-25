@@ -103,20 +103,6 @@ async function createProjectCard(issue_number, columnId) {
   }
 }
 
-async function cleanupProjectBoard() {
-  try {
-    core.startGroup('Cleaning up the project board...');
-
-    //TODO:  Cleanup, only keep X number of  cards, different strategy per type (branch/tag/sha), manual archives, delete old date labels?
-
-    core.info('Finished cleaning up the project board.');
-    core.endGroup();
-  } catch (error) {
-    core.setFailed(`An error occurred cleaning up the project board.  Error: ${error}`);
-    core.endGroup();
-  }
-}
-
 async function moveCardToColumn(card_Id, columnName, column_Id) {
   try {
     core.startGroup(`Moving the project card to the ${columnName} column....`);
@@ -148,6 +134,5 @@ async function moveCardToColumn(card_Id, columnName, column_Id) {
 module.exports = {
   getProjectData,
   createProjectCard,
-  cleanupProjectBoard,
   moveCardToColumn
 };

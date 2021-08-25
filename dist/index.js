@@ -7270,16 +7270,6 @@ var require_projects = __commonJS({
         throw error;
       }
     }
-    async function cleanupProjectBoard2() {
-      try {
-        core2.startGroup('Cleaning up the project board...');
-        core2.info('Finished cleaning up the project board.');
-        core2.endGroup();
-      } catch (error) {
-        core2.setFailed(`An error occurred cleaning up the project board.  Error: ${error}`);
-        core2.endGroup();
-      }
-    }
     async function moveCardToColumn2(card_Id, columnName, column_Id) {
       try {
         core2.startGroup(`Moving the project card to the ${columnName} column....`);
@@ -7307,7 +7297,6 @@ var require_projects = __commonJS({
     module2.exports = {
       getProjectData: getProjectData2,
       createProjectCard: createProjectCard2,
-      cleanupProjectBoard: cleanupProjectBoard2,
       moveCardToColumn: moveCardToColumn2
     };
   }
@@ -7329,7 +7318,7 @@ var require_labels = __commonJS({
       }
     });
     var colors = {
-      success: 'FBCA04',
+      success: '0E8A16',
       failure: 'D93F0B',
       cancelled: 'DEDEDE',
       skipped: 'DEDEDE',
@@ -10462,7 +10451,7 @@ var require_issues = __commonJS({
 // src/main.js
 var core = require_core();
 var github = require_github();
-var { getProjectData, createProjectCard, cleanupProjectBoard, moveCardToColumn } = require_projects();
+var { getProjectData, createProjectCard, moveCardToColumn } = require_projects();
 var { findIssuesWithLabel, removeLabelFromIssue, addLabelToIssue, makeSureLabelsForThisActionExist, removeStatusLabelsFromIssue } = require_labels();
 var { findTheIssueForThisDeploymentByTitle, createAnIssueForThisDeploymentIfItDoesNotExist, appendDeploymentDetailsToIssue } = require_issues();
 var ghLogin = core.getInput('github-login');
@@ -10541,11 +10530,14 @@ async function run() {
   await getProjectData(project);
   await makeSureLabelsForThisActionExist(labels);
   await findTheIssueForThisDeploymentByTitle(issueToUpdate, project.id);
-  const issuesWithCurrentlyInEnvLabel = await findIssuesWithLabel(labels.currentlyInEnv);
-  if (issuesWithCurrentlyInEnvLabel) {
-    for (let index = 0; index < issuesWithCurrentlyInEnvLabel.length; index++) {
-      const issueNumber = issuesWithCurrentlyInEnvLabel[index];
-      await removeLabelFromIssue(labels.currentlyInEnv, issueNumber);
+  let workflowFullyRan = labels.deployStatus === 'success' || labels.deployStatus === 'failure';
+  if (workflowFullyRan) {
+    const issuesWithCurrentlyInEnvLabel = await findIssuesWithLabel(labels.currentlyInEnv);
+    if (issuesWithCurrentlyInEnvLabel) {
+      for (let index = 0; index < issuesWithCurrentlyInEnvLabel.length; index++) {
+        const issueNumber = issuesWithCurrentlyInEnvLabel[index];
+        await removeLabelFromIssue(labels.currentlyInEnv, issueNumber);
+      }
     }
   }
   if (issueToUpdate.number === 0) {
@@ -10553,15 +10545,17 @@ async function run() {
   } else {
     await appendDeploymentDetailsToIssue(issueToUpdate, project, actor, labels.deployStatus);
     await removeStatusLabelsFromIssue(issueToUpdate.labels, issueToUpdate.number, labels.deployStatus);
-    await addLabelToIssue(labels.currentlyInEnv, issueToUpdate.number);
     await addLabelToIssue(labels.deployStatus, issueToUpdate.number);
+    if (workflowFullyRan) {
+      await addLabelToIssue(labels.currentlyInEnv, issueToUpdate.number);
+    }
   }
   if (issueToUpdate.projectCardId === 0) {
     await createProjectCard(issueToUpdate.nodeId, project.columnNodeId);
-  } else {
+  } else if (workflowFullyRan) {
     await moveCardToColumn(issueToUpdate.projectCardId, project.columnName, project.columnId);
   }
-  cleanupProjectBoard();
+  core.info(`See the project board at: ${project.link}`);
 }
 try {
   setupAction();

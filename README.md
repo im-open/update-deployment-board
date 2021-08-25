@@ -25,7 +25,7 @@ Before using this action, a Project board must be set up.
   - Update the board name and description if desired.
   - Once the board has been copied over update, delete or add columns as necessary.
 
-If the repository has multiple deployables, like a database and app service, separate boards can be set up for each.
+If the repository has multiple deployable artifacts, like a database and app service, separate boards can be set up for each.
 
 ## Action Conventions
 - This action can be used in conjunction with [cleanup-deployment-board] so the project board only shows the most current items.
@@ -45,7 +45,14 @@ If the repository has multiple deployables, like a database and app service, sep
        - v1, v1.0, v1.0.0, v1.0.0-test1
        - 2, 2.0, 2.0.0, 2.0.0-test2
   - Branch: Default when the SHA or Tag pattern do not match
-
+- Workflows with `success` or `failure` deploy status
+  - An issue will be created in the appropriate environment column on the project board if one does not exist.
+  - If there is an existing issue representing this deploy, it will be moved to the appropriate environment column on the project board.
+  - The `🚀currently-in-<env>` label will be removed from the issue that currently has it (if there is one) and put the label on the issue representing this deploy.
+- Workflows with `cancelled` or `skipped` deploy status
+  - An issue will be created in the appropriate environment column on the project board if one does not exist.
+  - If there is an existing issue representing this deploy, it will not be moved from the column it is currently in.
+  - The `🚀currently-in-<env>` label will remain on the issue that had it before the workflow ran (if there is one).
     
 
 ## Inputs
@@ -89,7 +96,7 @@ jobs:
       - name: Update deployment board with Defaults
         id: defaults
         continue-on-error: true                             # Setting to true so the job doesn't fail if updating the board fails.
-        uses: im-open/update-deployment-board@v1.0.1
+        uses: im-open/update-deployment-board@v1.0.2
         with:
           github-token: ${{ secrets.GITHUB_TOKEN}}          # If a different token is used, update github-login with the corresponding account
           environment: 'QA'
@@ -100,7 +107,7 @@ jobs:
       - name: Update deployment board with all values provided
         id: provided
         continue-on-error: true                             # Setting to true so the job doesn't fail if updating the board fails.
-        uses: im-open/update-deployment-board@v1.0.1
+        uses: im-open/update-deployment-board@v1.0.2
         with:
           github-token: ${{ secrets.BOT_TOKEN}}             # Since a different token is used, the github-login should be set to the corresponding acct
           github-login: 'my-bot'

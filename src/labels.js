@@ -14,7 +14,7 @@ const graphqlWithAuth = graphql.defaults({
 });
 
 const colors = {
-  success: 'FBCA04', //Green
+  success: '0E8A16', //Green
   failure: 'D93F0B', //Red
   cancelled: 'DEDEDE', //Gray
   skipped: 'DEDEDE', //Gray
