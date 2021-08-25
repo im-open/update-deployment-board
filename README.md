@@ -52,7 +52,7 @@ If the repository has multiple deployable artifacts, like a database and app ser
 - Workflows with `cancelled` or `skipped` deploy status
   - An issue will be created in the appropriate environment column on the project board if one does not exist.
   - If there is an existing issue representing this deploy, it will not be moved from the column it is currently in.
-  - The `🚀currently-in-<env>` label will not be removed from the issue that currently has it (if there is one) and it will not put that label on the issue representing this deploy.
+  - The `🚀currently-in-<env>` label will remain on the issue that had it before the workflow ran (if there is one).
     
 
 ## Inputs
