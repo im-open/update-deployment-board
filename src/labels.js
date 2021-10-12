@@ -1,17 +1,8 @@
 const core = require('@actions/core');
 const github = require('@actions/github');
-const { graphql } = require('@octokit/graphql');
 
-const ghToken = core.getInput('github-token');
 const owner = github.context.repo.owner;
 const repo = github.context.repo.repo;
-
-const octokit = github.getOctokit(ghToken);
-const graphqlWithAuth = graphql.defaults({
-  headers: {
-    authorization: `token ${ghToken}`
-  }
-});
 
 const colors = {
   success: '0E8A16', //Green
@@ -21,7 +12,7 @@ const colors = {
   current: 'FBCA04' //Yellow
 };
 
-async function listLabelsForRepo() {
+async function listLabelsForRepo(octokit) {
   try {
     core.info(`Retrieving the existing labels for this repository...`);
     const { data: existingLabels } = await octokit.rest.issues.listLabelsForRepo({
@@ -45,7 +36,7 @@ async function listLabelsForRepo() {
   }
 }
 
-async function createLabel(name, color) {
+async function createLabel(octokit, name, color) {
   try {
     core.info(`Creating the ${name} label with color ${color}...`);
     await octokit.rest.issues.createLabel({
@@ -61,7 +52,7 @@ async function createLabel(name, color) {
   }
 }
 
-async function addLabelToIssue(name, issue_number) {
+async function addLabelToIssue(octokit, name, issue_number) {
   try {
     core.startGroup(`Adding label '${name}' to issue #${issue_number}...`);
     await octokit.rest.issues.addLabels({
@@ -79,7 +70,7 @@ async function addLabelToIssue(name, issue_number) {
   }
 }
 
-async function removeLabelFromIssue(labelName, issue_number) {
+async function removeLabelFromIssue(octokit, labelName, issue_number) {
   try {
     core.startGroup(`Removing label ${labelName} from issue #${issue_number}...`);
     await octokit.rest.issues.removeLabel({
@@ -97,7 +88,7 @@ async function removeLabelFromIssue(labelName, issue_number) {
   }
 }
 
-async function removeStatusLabelsFromIssue(existingLabels, issueNumber, deployStatus) {
+async function removeStatusLabelsFromIssue(octokit, existingLabels, issueNumber, deployStatus) {
   try {
     core.startGroup(`Removing deployment status labels from issue #${issueNumber} if it has them.`);
     const hasSuccessLabel = existingLabels.indexOf('success') > -1;
@@ -110,10 +101,10 @@ async function removeStatusLabelsFromIssue(existingLabels, issueNumber, deploySt
     const currentStatusIsCancelled = deployStatus === 'cancelled';
     const currentStatusIsSkipped = deployStatus === 'skipped';
 
-    if (hasSuccessLabel && !currentStatusIsSuccess) await removeLabelFromIssue('success', issueNumber);
-    if (hasFailureLabel && !currentStatusIsFailure) await removeLabelFromIssue('failure', issueNumber);
-    if (hasCancelledLabel && !currentStatusIsCancelled) await removeLabelFromIssue('cancelled', issueNumber);
-    if (hasSkippedLabel && !currentStatusIsSkipped) await removeLabelFromIssue('skipped', issueNumber);
+    if (hasSuccessLabel && !currentStatusIsSuccess) await removeLabelFromIssue(octokit, 'success', issueNumber);
+    if (hasFailureLabel && !currentStatusIsFailure) await removeLabelFromIssue(octokit, 'failure', issueNumber);
+    if (hasCancelledLabel && !currentStatusIsCancelled) await removeLabelFromIssue(octokit, 'cancelled', issueNumber);
+    if (hasSkippedLabel && !currentStatusIsSkipped) await removeLabelFromIssue(octokit, 'skipped', issueNumber);
     core.info(`Finished removing deployment status labels from issue #${issueNumber}.`);
     core.endGroup();
   } catch (error) {
@@ -123,7 +114,7 @@ async function removeStatusLabelsFromIssue(existingLabels, issueNumber, deploySt
   }
 }
 
-async function findIssuesWithLabel(labelName) {
+async function findIssuesWithLabel(graphqlWithAuth, labelName) {
   try {
     core.startGroup(`Finding issuess with label '${labelName}'...`);
 
@@ -152,28 +143,28 @@ async function findIssuesWithLabel(labelName) {
     core.endGroup();
     return issues;
   } catch (error) {
-    core.info(`An error occurred retrieving issues with the '${labelName}' label: ${e}`);
+    core.info(`An error occurred retrieving issues with the '${labelName}' label: ${error}`);
     core.info(`You may need to manually remove the ${labelName} from other issues`);
     core.endGroup();
     return [];
   }
 }
 
-async function makeSureLabelsForThisActionExist(labels) {
+async function makeSureLabelsForThisActionExist(octokit, labels) {
   core.startGroup(`Making sure the labels this action uses exist...`);
-  existingLabelNames = await listLabelsForRepo();
+  existingLabelNames = await listLabelsForRepo(octokit);
 
   //Check to see if the labels we will be adding for this issue exist & create if they don't
   if (existingLabelNames.indexOf(labels.deployStatus) === -1) {
     labels.deployStatusExists = false;
-    await createLabel(labels.deployStatus, colors[labels.deployStatus]);
+    await createLabel(octokit, labels.deployStatus, colors[labels.deployStatus]);
   } else {
     core.info(`The ${labels.deployStatus} label exists.`);
   }
 
   if (existingLabelNames.indexOf(labels.currentlyInEnv) === -1) {
     labels.currentlyInEnvExists = false;
-    await createLabel(labels.currentlyInEnv, colors['current']);
+    await createLabel(octokit, labels.currentlyInEnv, colors['current']);
   } else {
     core.info(`The ${labels.currentlyInEnv} label exists.`);
   }
@@ -184,8 +175,6 @@ async function makeSureLabelsForThisActionExist(labels) {
 module.exports = {
   findIssuesWithLabel,
   addLabelToIssue,
-  createLabel,
-  listLabelsForRepo,
   removeLabelFromIssue,
   removeStatusLabelsFromIssue,
   makeSureLabelsForThisActionExist

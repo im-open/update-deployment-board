@@ -2,6 +2,14 @@
 
 This action creates a visual representation of deployments on a Project board in your GitHub repository.  When this action is included in a workflow that does a deployment it will generate or update an existing issue and include it on the specified project board.  
 
+  - [Project Board](#project-board)
+  - [Action Conventions](#action-conventions)
+  - [Inputs](#inputs)
+  - [Example](#example)
+  - [Recompiling](#recompiling)
+  - [Code of Conduct](#code-of-conduct)
+  - [License](#license)
+  
 <kbd><img src="./docs/project-board.png"></img></kbd>
 
 When the action runs it will label the issue with two labels
@@ -25,7 +33,9 @@ Before using this action, a Project board must be set up.
   - Update the board name and description if desired.
   - Once the board has been copied over update, delete or add columns as necessary.
 
-If the repository has multiple deployable artifacts, like a database and app service, separate boards can be set up for each.
+If the repository has multiple deployable artifacts, like a database and app service, the recommended approach is to create separate boards for each deployable type.
+
+Some repositories that contain multiple deployable artifacts may need to customize the behavior of the action.  For repos where one release tag is created but the deployments for each item happen separately there is a `deployable-type` argument.  This allows you to specify the type (*like MFE, API, SVC, BFF, DB, etc*) and separate issues are created for each deployable on the project board.  This can make tracking of separate deployable artifacts in the same repository easier.
 
 ## Action Conventions
 - This action can be used in conjunction with [cleanup-deployment-board] so the project board only shows the most current items.
@@ -56,16 +66,17 @@ If the repository has multiple deployable artifacts, like a database and app ser
     
 
 ## Inputs
-| Parameter       | Is Required | Description                                                                                                                                                                                                                      |
-| --------------- | ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `github-token`  | true        | A token with permissions to create and update issues.                                                                                                                                                                            |
-| `github-login`  | false       | The login associated with the github-token.  Defaults to github-actions but should be updated if a different account owns the token provided.                                                                                    |
-| `environment`   | true        | The environment the branch, tag or SHA was deployed to.                                                                                                                                                                          |
-| `board-number`  | true        | The number of the project board that will be updated.  Can be found by using the number in the board's url. <br/><br/> For example the number would be 1 for:<br/>https://github.com/im-open/update-deployment-board/projects/1. |
-| `ref`           | true        | The branch, tag or SHA that was deployed.                                                                                                                                                                                        |
-| `ref-type`      | false       | The type of ref that was deployed.  If not provided the action will use some regex patterns to try to identify the type.  <br/><br/>Possible Values: *branch, tag, sha*                                                          |
-| `deploy-status` | true        | The status of the deployment.  <br/><br/>Possible Values: *success, failure, cancelled, skipped*                                                                                                                                 |
-| `timezone`      | false       | IANA time zone name (e.g. America/Denver) to display dates in.  If time zone is not provided, dates will be shown in UTC                                                                                                         |
+| Parameter         | Is Required | Description                                                                                                                                                                                                                                                                                                                                                                                          |
+| ----------------- | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `github-token`    | true        | A token with permissions to create and update issues.                                                                                                                                                                                                                                                                                                                                                |
+| `github-login`    | false       | The login associated with the github-token.  Defaults to github-actions but should be updated if a different account owns the token provided.                                                                                                                                                                                                                                                        |
+| `environment`     | true        | The environment the branch, tag or SHA was deployed to.                                                                                                                                                                                                                                                                                                                                              |
+| `board-number`    | true        | The number of the project board that will be updated.  Can be found by using the number in the board's url. <br/><br/> For example the number would be 1 for:<br/>https://github.com/im-open/update-deployment-board/projects/1.                                                                                                                                                                     |
+| `ref`             | true        | The branch, tag or SHA that was deployed.                                                                                                                                                                                                                                                                                                                                                            |
+| `ref-type`        | false       | The type of ref that was deployed.  If not provided the action will use some regex patterns to try to identify the type.  <br/><br/>Possible Values: *branch, tag, sha*                                                                                                                                                                                                                              |
+| `deployable-type` | false       | String indicating the type of deployable item (*like API, BFF, MFE, SVC, DB, etc*).<br/><br/>In repositories with multiple deployable artifacts that are deployed separately but use the same release number this arg is the mechanism for creating separate issues to track the deployment of each separate type.<br/><br/>  When provided, this will be added to the beginning of the issue title. |
+| `deploy-status`   | true        | The status of the deployment.  <br/><br/>Possible Values: *success, failure, cancelled, skipped*                                                                                                                                                                                                                                                                                                     |
+| `timezone`        | false       | IANA time zone name (e.g. America/Denver) to display dates in.  If time zone is not provided, dates will be shown in UTC                                                                                                                                                                                                                                                                             |
 
 
 
@@ -96,7 +107,7 @@ jobs:
       - name: Update deployment board with Defaults
         id: defaults
         continue-on-error: true                             # Setting to true so the job doesn't fail if updating the board fails.
-        uses: im-open/update-deployment-board@v1.0.2
+        uses: im-open/update-deployment-board@v1.1.0
         with:
           github-token: ${{ secrets.GITHUB_TOKEN}}          # If a different token is used, update github-login with the corresponding account
           environment: 'QA'
@@ -107,7 +118,7 @@ jobs:
       - name: Update deployment board with all values provided
         id: provided
         continue-on-error: true                             # Setting to true so the job doesn't fail if updating the board fails.
-        uses: im-open/update-deployment-board@v1.0.2
+        uses: im-open/update-deployment-board@v1.1.0
         with:
           github-token: ${{ secrets.BOT_TOKEN}}             # Since a different token is used, the github-login should be set to the corresponding acct
           github-login: 'my-bot'

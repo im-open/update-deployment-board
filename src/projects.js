@@ -1,19 +1,11 @@
 const core = require('@actions/core');
 const github = require('@actions/github');
-const { graphql } = require('@octokit/graphql');
 const axios = require('axios');
 
-const ghToken = core.getInput('github-token');
 const owner = github.context.repo.owner;
 const repo = github.context.repo.repo;
 
-const graphqlWithAuth = graphql.defaults({
-  headers: {
-    authorization: `token ${ghToken}`
-  }
-});
-
-async function getProjectData(projectToUpdate) {
+async function getProjectData(graphqlWithAuth, projectToUpdate) {
   try {
     core.startGroup(`Retrieving information about project #${projectToUpdate.number}...`);
     const query = `
@@ -83,7 +75,7 @@ async function getProjectData(projectToUpdate) {
   }
 }
 
-async function createProjectCard(issue_number, columnId) {
+async function createProjectCard(graphqlWithAuth, issue_number, columnId) {
   core.startGroup(`Creating a project card for the issue...`);
   //The rest client and post requests both failed so use graphql to make this change
   try {
@@ -103,7 +95,7 @@ async function createProjectCard(issue_number, columnId) {
   }
 }
 
-async function moveCardToColumn(card_Id, columnName, column_Id) {
+async function moveCardToColumn(ghToken, card_Id, columnName, column_Id) {
   try {
     core.startGroup(`Moving the project card to the ${columnName} column....`);
 
@@ -118,7 +110,7 @@ async function moveCardToColumn(card_Id, columnName, column_Id) {
       headers: {
         'content-type': 'application/json',
         authorization: `token ${ghToken}`,
-        accept: 'application/vnd.github.inertia-preview+json'
+        accept: 'application/vnd.github.v3+json'
       },
       data: JSON.stringify(request)
     });
@@ -126,7 +118,7 @@ async function moveCardToColumn(card_Id, columnName, column_Id) {
     core.endGroup();
   } catch (error) {
     //Don't immediately fail by throwing, let it see what else it can finish.
-    core.setFailed(`An error making the request to close the PagerDuty maintenance window: ${error}`);
+    core.setFailed(`An error making the request to move the card to the ${columnName} column: ${error}`);
     core.endGroup();
   }
 }

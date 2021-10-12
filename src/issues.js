@@ -1,24 +1,13 @@
 const core = require('@actions/core');
 const github = require('@actions/github');
-const { graphql } = require('@octokit/graphql');
+
 const { format, utcToZonedTime } = require('date-fns-tz');
 const axios = require('axios');
 
-const ghToken = core.getInput('github-token');
 const owner = github.context.repo.owner;
 const repo = github.context.repo.repo;
-let ghLogin = core.getInput('github-login');
 
-if (!ghLogin || ghLogin.length === 0) ghLogin = 'github-actions';
-
-const octokit = github.getOctokit(ghToken);
-const graphqlWithAuth = graphql.defaults({
-  headers: {
-    authorization: `token ${ghToken}`
-  }
-});
-
-async function findTheIssueForThisDeploymentByTitle(issueToUpdate, projectBoardId) {
+async function findTheIssueForThisDeploymentByTitle(graphqlWithAuth, ghLogin, issueToUpdate, projectBoardId) {
   try {
     core.startGroup(`Retrieving the issue by title: '${issueToUpdate.title}'...`);
     const query = `
@@ -61,10 +50,30 @@ async function findTheIssueForThisDeploymentByTitle(issueToUpdate, projectBoardI
       return;
     }
 
-    //Take the first one that matches the title, it should be the most recent.
-    const existingIssue = response.repository.issues.edges.find(issue => issue.node.title.toLowerCase() === issueToUpdate.title.toLowerCase());
-    if (!existingIssue) {
+    //Find all of the cards with the matching title, we'll check to see which board they are on later.
+    const existingIssues = response.repository.issues.edges.filter(issue => issue.node.title.toLowerCase() === issueToUpdate.title.toLowerCase());
+    if (!existingIssues || existingIssues.length === 0) {
       core.info(`An issue with the title '${issueToUpdate.title}' was not found.`);
+      core.endGroup();
+      return;
+    }
+
+    // Make the issues with the matching title are connected to a project board
+    let issuesOnAnyProjectBoard = existingIssues.filter(
+      e => e.node && e.node.projectCards && e.node.projectCards.edges && e.node.projectCards.edges.length > 0
+    );
+    if (!issuesOnAnyProjectBoard || issuesOnAnyProjectBoard.length === 0) {
+      core.info('None of the issues with matching titles have project cards associated with them.');
+      core.endGroup();
+      return;
+    }
+
+    // See if one of the issues with the matching title is on this board
+    let existingIssue = issuesOnAnyProjectBoard.find(i =>
+      i.node.projectCards.edges.find(pc => pc.node.project && pc.node.project.databaseId == projectBoardId)
+    );
+    if (!existingIssue) {
+      core.info(`An issue with the title '${issueToUpdate.title}' and on project board ${projectBoardId} was not found.`);
       core.endGroup();
       return;
     }
@@ -72,21 +81,14 @@ async function findTheIssueForThisDeploymentByTitle(issueToUpdate, projectBoardI
     issueToUpdate.number = existingIssue.node.number;
     issueToUpdate.body = existingIssue.node.body;
     issueToUpdate.state = existingIssue.node.state;
-    core.info(`The issue was found:'#${issueToUpdate.number} ${issueToUpdate.title}': `);
+
+    const projectCard = existingIssue.node.projectCards.edges.find(pc => pc.node.project && pc.node.project.databaseId == projectBoardId);
+    issueToUpdate.projectCardId = projectCard.node.databaseId; //(this is different then the pc.node.project.databaseId we're checking above)
 
     if (existingIssue.node.labels && existingIssue.node.labels.edges && existingIssue.node.labels.edges.length > 0) {
       issueToUpdate.labels = existingIssue.node.labels.edges.map(l => l.node.name);
     }
 
-    if (!existingIssue.node.projectCards || !existingIssue.node.projectCards.edges || existingIssue.node.projectCards.edges.length === 0) {
-      core.info('The issue does not have a project card associated with it.');
-      core.endGroup();
-      return;
-    }
-
-    //The issue can't exist on the same board twice, so find the first
-    const projectCard = existingIssue.node.projectCards.edges.find(pc => pc.node.project && pc.node.project.databaseId == projectBoardId);
-    issueToUpdate.projectCardId = projectCard.node.databaseId;
     core.info(`A project card was found for '#${issueToUpdate.number} ${issueToUpdate.title}': ${issueToUpdate.projectCardId}`);
     core.endGroup();
   } catch (error) {
@@ -110,7 +112,7 @@ function getDateString() {
   return nowString;
 }
 
-async function createAnIssueForThisDeploymentIfItDoesNotExist(issueToUpdate, labels, project, actor) {
+async function createAnIssueForThisDeploymentIfItDoesNotExist(octokit, ghLogin, issueToUpdate, labels, project, actor) {
   try {
     core.startGroup(`Creating an issue for this deployment since it does not exist...`);
     let workflowUrl = `[${github.context.runNumber}](https://github.com/${owner}/${repo}/actions/runs/${github.context.runId})`;
@@ -152,7 +154,7 @@ async function createAnIssueForThisDeploymentIfItDoesNotExist(issueToUpdate, lab
   }
 }
 
-async function appendDeploymentDetailsToIssue(issueToUpdate, project, actor, deployStatus) {
+async function appendDeploymentDetailsToIssue(ghToken, issueToUpdate, project, actor, deployStatus) {
   try {
     core.startGroup(`Appending the deployment details to the issue...`);
 
