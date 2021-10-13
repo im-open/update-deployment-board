@@ -3078,7 +3078,7 @@ var require_dist_node6 = __commonJS({
     var NON_VARIABLE_OPTIONS = ['method', 'baseUrl', 'url', 'headers', 'request', 'query', 'mediaType'];
     var FORBIDDEN_VARIABLE_OPTIONS = ['query', 'method', 'url'];
     var GHES_V3_SUFFIX_REGEX = /\/api\/v3\/?$/;
-    function graphql(request2, query, options) {
+    function graphql2(request2, query, options) {
       if (options) {
         if (typeof query === 'string' && 'query' in options) {
           return Promise.reject(new Error(`[@octokit/graphql] "query" cannot be used as variable name`));
@@ -3129,7 +3129,7 @@ var require_dist_node6 = __commonJS({
     function withDefaults(request$1, newDefaults) {
       const newRequest = request$1.defaults(newDefaults);
       const newApi = (query, options) => {
-        return graphql(newRequest, query, options);
+        return graphql2(newRequest, query, options);
       };
       return Object.assign(newApi, {
         defaults: withDefaults.bind(null, newRequest),
@@ -3202,7 +3202,7 @@ var require_dist_node8 = __commonJS({
     var universalUserAgent = require_dist_node();
     var beforeAfterHook = require_before_after_hook();
     var request = require_dist_node5();
-    var graphql = require_dist_node6();
+    var graphql2 = require_dist_node6();
     var authToken = require_dist_node7();
     function _objectWithoutPropertiesLoose(source, excluded) {
       if (source == null) return {};
@@ -3260,7 +3260,7 @@ var require_dist_node8 = __commonJS({
           requestDefaults.headers['time-zone'] = options.timeZone;
         }
         this.request = request.request.defaults(requestDefaults);
-        this.graphql = graphql.withCustomRequest(this.request).defaults(requestDefaults);
+        this.graphql = graphql2.withCustomRequest(this.request).defaults(requestDefaults);
         this.log = Object.assign(
           {
             debug: () => {},
@@ -4836,7 +4836,7 @@ var require_dist_node9 = __commonJS({
       }
     };
     var VERSION = '5.3.7';
-    function endpointsToMethods(octokit, endpointsMap) {
+    function endpointsToMethods(octokit2, endpointsMap) {
       const newMethods = {};
       for (const [scope, endpoints] of Object.entries(endpointsMap)) {
         for (const [methodName, endpoint] of Object.entries(endpoints)) {
@@ -4854,16 +4854,16 @@ var require_dist_node9 = __commonJS({
           }
           const scopeMethods = newMethods[scope];
           if (decorations) {
-            scopeMethods[methodName] = decorate(octokit, scope, methodName, endpointDefaults, decorations);
+            scopeMethods[methodName] = decorate(octokit2, scope, methodName, endpointDefaults, decorations);
             continue;
           }
-          scopeMethods[methodName] = octokit.request.defaults(endpointDefaults);
+          scopeMethods[methodName] = octokit2.request.defaults(endpointDefaults);
         }
       }
       return newMethods;
     }
-    function decorate(octokit, scope, methodName, defaults, decorations) {
-      const requestWithDefaults = octokit.request.defaults(defaults);
+    function decorate(octokit2, scope, methodName, defaults, decorations) {
+      const requestWithDefaults = octokit2.request.defaults(defaults);
       function withDecorations(...args) {
         let options = requestWithDefaults.endpoint.merge(...args);
         if (decorations.mapToData) {
@@ -4875,16 +4875,16 @@ var require_dist_node9 = __commonJS({
         }
         if (decorations.renamed) {
           const [newScope, newMethodName] = decorations.renamed;
-          octokit.log.warn(`octokit.${scope}.${methodName}() has been renamed to octokit.${newScope}.${newMethodName}()`);
+          octokit2.log.warn(`octokit.${scope}.${methodName}() has been renamed to octokit.${newScope}.${newMethodName}()`);
         }
         if (decorations.deprecated) {
-          octokit.log.warn(decorations.deprecated);
+          octokit2.log.warn(decorations.deprecated);
         }
         if (decorations.renamedParameters) {
           const options2 = requestWithDefaults.endpoint.merge(...args);
           for (const [name, alias] of Object.entries(decorations.renamedParameters)) {
             if (name in options2) {
-              octokit.log.warn(`"${name}" parameter is deprecated for "octokit.${scope}.${methodName}()". Use "${alias}" instead`);
+              octokit2.log.warn(`"${name}" parameter is deprecated for "octokit.${scope}.${methodName}()". Use "${alias}" instead`);
               if (!(alias in options2)) {
                 options2[alias] = options2[name];
               }
@@ -4897,15 +4897,15 @@ var require_dist_node9 = __commonJS({
       }
       return Object.assign(withDecorations, requestWithDefaults);
     }
-    function restEndpointMethods(octokit) {
-      const api = endpointsToMethods(octokit, Endpoints);
+    function restEndpointMethods(octokit2) {
+      const api = endpointsToMethods(octokit2, Endpoints);
       return {
         rest: api
       };
     }
     restEndpointMethods.VERSION = VERSION;
-    function legacyRestEndpointMethods(octokit) {
-      const api = endpointsToMethods(octokit, Endpoints);
+    function legacyRestEndpointMethods(octokit2) {
+      const api = endpointsToMethods(octokit2, Endpoints);
       return _objectSpread2(
         _objectSpread2({}, api),
         {},
@@ -4999,9 +4999,9 @@ var require_dist_node10 = __commonJS({
       response.data.total_count = totalCount;
       return response;
     }
-    function iterator(octokit, route, parameters) {
-      const options = typeof route === 'function' ? route.endpoint(parameters) : octokit.request.endpoint(route, parameters);
-      const requestMethod = typeof route === 'function' ? route : octokit.request;
+    function iterator(octokit2, route, parameters) {
+      const options = typeof route === 'function' ? route.endpoint(parameters) : octokit2.request.endpoint(route, parameters);
+      const requestMethod = typeof route === 'function' ? route : octokit2.request;
       const method = options.method;
       const headers = options.headers;
       let url = options.url;
@@ -5038,14 +5038,14 @@ var require_dist_node10 = __commonJS({
         })
       };
     }
-    function paginate(octokit, route, parameters, mapFn) {
+    function paginate(octokit2, route, parameters, mapFn) {
       if (typeof parameters === 'function') {
         mapFn = parameters;
         parameters = void 0;
       }
-      return gather(octokit, [], iterator(octokit, route, parameters)[Symbol.asyncIterator](), mapFn);
+      return gather(octokit2, [], iterator(octokit2, route, parameters)[Symbol.asyncIterator](), mapFn);
     }
-    function gather(octokit, results, iterator2, mapFn) {
+    function gather(octokit2, results, iterator2, mapFn) {
       return iterator2.next().then(result => {
         if (result.done) {
           return results;
@@ -5058,7 +5058,7 @@ var require_dist_node10 = __commonJS({
         if (earlyExit) {
           return results;
         }
-        return gather(octokit, results, iterator2, mapFn);
+        return gather(octokit2, results, iterator2, mapFn);
       });
     }
     var composePaginateRest = Object.assign(paginate, {
@@ -5262,10 +5262,10 @@ var require_dist_node10 = __commonJS({
         return false;
       }
     }
-    function paginateRest(octokit) {
+    function paginateRest(octokit2) {
       return {
-        paginate: Object.assign(paginate.bind(null, octokit), {
-          iterator: iterator.bind(null, octokit)
+        paginate: Object.assign(paginate.bind(null, octokit2), {
+          iterator: iterator.bind(null, octokit2)
         })
       };
     }
@@ -7178,17 +7178,10 @@ var require_projects = __commonJS({
   'src/projects.js'(exports2, module2) {
     var core2 = require_core();
     var github2 = require_github();
-    var { graphql } = require_dist_node6();
     var axios = require_axios2();
-    var ghToken2 = core2.getInput('github-token');
     var owner = github2.context.repo.owner;
     var repo = github2.context.repo.repo;
-    var graphqlWithAuth = graphql.defaults({
-      headers: {
-        authorization: `token ${ghToken2}`
-      }
-    });
-    async function getProjectData2(projectToUpdate) {
+    async function getProjectData2(graphqlWithAuth2, projectToUpdate) {
       try {
         core2.startGroup(`Retrieving information about project #${projectToUpdate.number}...`);
         const query = `
@@ -7211,7 +7204,7 @@ var require_projects = __commonJS({
         } 
       }
     }`;
-        const response = await graphqlWithAuth(query);
+        const response = await graphqlWithAuth2(query);
         if (
           !response.repository.project ||
           !response.repository.project.columns ||
@@ -7253,7 +7246,7 @@ var require_projects = __commonJS({
         throw error;
       }
     }
-    async function createProjectCard2(issue_number, columnId) {
+    async function createProjectCard2(graphqlWithAuth2, issue_number, columnId) {
       core2.startGroup(`Creating a project card for the issue...`);
       try {
         const mutation = `mutation {
@@ -7261,7 +7254,7 @@ var require_projects = __commonJS({
         clientMutationId
       }
     }`;
-        await graphqlWithAuth(mutation);
+        await graphqlWithAuth2(mutation);
         core2.info(`A project card was successfully created.`);
         core2.endGroup();
       } catch (error) {
@@ -7270,7 +7263,7 @@ var require_projects = __commonJS({
         throw error;
       }
     }
-    async function moveCardToColumn2(card_Id, columnName, column_Id) {
+    async function moveCardToColumn2(ghToken2, card_Id, columnName, column_Id) {
       try {
         core2.startGroup(`Moving the project card to the ${columnName} column....`);
         const request = {
@@ -7283,14 +7276,14 @@ var require_projects = __commonJS({
           headers: {
             'content-type': 'application/json',
             authorization: `token ${ghToken2}`,
-            accept: 'application/vnd.github.inertia-preview+json'
+            accept: 'application/vnd.github.v3+json'
           },
           data: JSON.stringify(request)
         });
         core2.info(`The card was moved to the ${columnName} column.`);
         core2.endGroup();
       } catch (error) {
-        core2.setFailed(`An error making the request to close the PagerDuty maintenance window: ${error}`);
+        core2.setFailed(`An error making the request to move the card to the ${columnName} column: ${error}`);
         core2.endGroup();
       }
     }
@@ -7307,16 +7300,8 @@ var require_labels = __commonJS({
   'src/labels.js'(exports2, module2) {
     var core2 = require_core();
     var github2 = require_github();
-    var { graphql } = require_dist_node6();
-    var ghToken2 = core2.getInput('github-token');
     var owner = github2.context.repo.owner;
     var repo = github2.context.repo.repo;
-    var octokit = github2.getOctokit(ghToken2);
-    var graphqlWithAuth = graphql.defaults({
-      headers: {
-        authorization: `token ${ghToken2}`
-      }
-    });
     var colors = {
       success: '0E8A16',
       failure: 'D93F0B',
@@ -7324,10 +7309,10 @@ var require_labels = __commonJS({
       skipped: 'DEDEDE',
       current: 'FBCA04'
     };
-    async function listLabelsForRepo() {
+    async function listLabelsForRepo(octokit2) {
       try {
         core2.info(`Retrieving the existing labels for this repository...`);
-        const { data: existingLabels } = await octokit.rest.issues.listLabelsForRepo({
+        const { data: existingLabels } = await octokit2.rest.issues.listLabelsForRepo({
           owner,
           repo
         });
@@ -7345,10 +7330,10 @@ var require_labels = __commonJS({
         return [];
       }
     }
-    async function createLabel(name, color) {
+    async function createLabel(octokit2, name, color) {
       try {
         core2.info(`Creating the ${name} label with color ${color}...`);
-        await octokit.rest.issues.createLabel({
+        await octokit2.rest.issues.createLabel({
           owner,
           repo,
           name,
@@ -7360,10 +7345,10 @@ var require_labels = __commonJS({
         throw error;
       }
     }
-    async function addLabelToIssue2(name, issue_number) {
+    async function addLabelToIssue2(octokit2, name, issue_number) {
       try {
         core2.startGroup(`Adding label '${name}' to issue #${issue_number}...`);
-        await octokit.rest.issues.addLabels({
+        await octokit2.rest.issues.addLabels({
           owner,
           repo,
           issue_number,
@@ -7376,10 +7361,10 @@ var require_labels = __commonJS({
         core2.endGroup();
       }
     }
-    async function removeLabelFromIssue2(labelName, issue_number) {
+    async function removeLabelFromIssue2(octokit2, labelName, issue_number) {
       try {
         core2.startGroup(`Removing label ${labelName} from issue #${issue_number}...`);
-        await octokit.rest.issues.removeLabel({
+        await octokit2.rest.issues.removeLabel({
           owner,
           repo,
           issue_number,
@@ -7392,7 +7377,7 @@ var require_labels = __commonJS({
         core2.endGroup();
       }
     }
-    async function removeStatusLabelsFromIssue2(existingLabels, issueNumber, deployStatus2) {
+    async function removeStatusLabelsFromIssue2(octokit2, existingLabels, issueNumber, deployStatus2) {
       try {
         core2.startGroup(`Removing deployment status labels from issue #${issueNumber} if it has them.`);
         const hasSuccessLabel = existingLabels.indexOf('success') > -1;
@@ -7403,10 +7388,10 @@ var require_labels = __commonJS({
         const currentStatusIsFailure = deployStatus2 === 'failure';
         const currentStatusIsCancelled = deployStatus2 === 'cancelled';
         const currentStatusIsSkipped = deployStatus2 === 'skipped';
-        if (hasSuccessLabel && !currentStatusIsSuccess) await removeLabelFromIssue2('success', issueNumber);
-        if (hasFailureLabel && !currentStatusIsFailure) await removeLabelFromIssue2('failure', issueNumber);
-        if (hasCancelledLabel && !currentStatusIsCancelled) await removeLabelFromIssue2('cancelled', issueNumber);
-        if (hasSkippedLabel && !currentStatusIsSkipped) await removeLabelFromIssue2('skipped', issueNumber);
+        if (hasSuccessLabel && !currentStatusIsSuccess) await removeLabelFromIssue2(octokit2, 'success', issueNumber);
+        if (hasFailureLabel && !currentStatusIsFailure) await removeLabelFromIssue2(octokit2, 'failure', issueNumber);
+        if (hasCancelledLabel && !currentStatusIsCancelled) await removeLabelFromIssue2(octokit2, 'cancelled', issueNumber);
+        if (hasSkippedLabel && !currentStatusIsSkipped) await removeLabelFromIssue2(octokit2, 'skipped', issueNumber);
         core2.info(`Finished removing deployment status labels from issue #${issueNumber}.`);
         core2.endGroup();
       } catch (error) {
@@ -7414,7 +7399,7 @@ var require_labels = __commonJS({
         core2.endGroup();
       }
     }
-    async function findIssuesWithLabel2(labelName) {
+    async function findIssuesWithLabel2(graphqlWithAuth2, labelName) {
       try {
         core2.startGroup(`Finding issuess with label '${labelName}'...`);
         const query = `
@@ -7429,7 +7414,7 @@ var require_labels = __commonJS({
         }
       }
     }`;
-        const response = await graphqlWithAuth(query);
+        const response = await graphqlWithAuth2(query);
         if (!response.repository.issues || !response.repository.issues.edges || response.repository.issues.edges.length === 0) {
           core2.info(`There were no issues with label '${labelName}'.`);
           core2.endGroup();
@@ -7440,24 +7425,24 @@ var require_labels = __commonJS({
         core2.endGroup();
         return issues;
       } catch (error) {
-        core2.info(`An error occurred retrieving issues with the '${labelName}' label: ${e}`);
+        core2.info(`An error occurred retrieving issues with the '${labelName}' label: ${error}`);
         core2.info(`You may need to manually remove the ${labelName} from other issues`);
         core2.endGroup();
         return [];
       }
     }
-    async function makeSureLabelsForThisActionExist2(labels2) {
+    async function makeSureLabelsForThisActionExist2(octokit2, labels2) {
       core2.startGroup(`Making sure the labels this action uses exist...`);
-      existingLabelNames = await listLabelsForRepo();
+      existingLabelNames = await listLabelsForRepo(octokit2);
       if (existingLabelNames.indexOf(labels2.deployStatus) === -1) {
         labels2.deployStatusExists = false;
-        await createLabel(labels2.deployStatus, colors[labels2.deployStatus]);
+        await createLabel(octokit2, labels2.deployStatus, colors[labels2.deployStatus]);
       } else {
         core2.info(`The ${labels2.deployStatus} label exists.`);
       }
       if (existingLabelNames.indexOf(labels2.currentlyInEnv) === -1) {
         labels2.currentlyInEnvExists = false;
-        await createLabel(labels2.currentlyInEnv, colors['current']);
+        await createLabel(octokit2, labels2.currentlyInEnv, colors['current']);
       } else {
         core2.info(`The ${labels2.currentlyInEnv} label exists.`);
       }
@@ -7467,8 +7452,6 @@ var require_labels = __commonJS({
     module2.exports = {
       findIssuesWithLabel: findIssuesWithLabel2,
       addLabelToIssue: addLabelToIssue2,
-      createLabel,
-      listLabelsForRepo,
       removeLabelFromIssue: removeLabelFromIssue2,
       removeStatusLabelsFromIssue: removeStatusLabelsFromIssue2,
       makeSureLabelsForThisActionExist: makeSureLabelsForThisActionExist2
@@ -10281,21 +10264,11 @@ var require_issues = __commonJS({
   'src/issues.js'(exports2, module2) {
     var core2 = require_core();
     var github2 = require_github();
-    var { graphql } = require_dist_node6();
     var { format, utcToZonedTime } = require_date_fns_tz();
     var axios = require_axios2();
-    var ghToken2 = core2.getInput('github-token');
     var owner = github2.context.repo.owner;
     var repo = github2.context.repo.repo;
-    var ghLogin2 = core2.getInput('github-login');
-    if (!ghLogin2 || ghLogin2.length === 0) ghLogin2 = 'github-actions';
-    var octokit = github2.getOctokit(ghToken2);
-    var graphqlWithAuth = graphql.defaults({
-      headers: {
-        authorization: `token ${ghToken2}`
-      }
-    });
-    async function findTheIssueForThisDeploymentByTitle2(issueToUpdate2, projectBoardId2) {
+    async function findTheIssueForThisDeploymentByTitle2(graphqlWithAuth2, ghLogin2, issueToUpdate2, projectBoardId2) {
       try {
         core2.startGroup(`Retrieving the issue by title: '${issueToUpdate2.title}'...`);
         const query = `
@@ -10330,32 +10303,44 @@ var require_issues = __commonJS({
         }
       }
     }`;
-        const response = await graphqlWithAuth(query);
+        const response = await graphqlWithAuth2(query);
         if (!response.repository.issues || !response.repository.issues.edges || response.repository.issues.edges.length === 0) {
           core2.info('No Issues were found.');
           core2.endGroup();
           return;
         }
-        const existingIssue = response.repository.issues.edges.find(issue => issue.node.title.toLowerCase() === issueToUpdate2.title.toLowerCase());
-        if (!existingIssue) {
+        const existingIssues = response.repository.issues.edges.filter(
+          issue => issue.node.title.toLowerCase() === issueToUpdate2.title.toLowerCase()
+        );
+        if (!existingIssues || existingIssues.length === 0) {
           core2.info(`An issue with the title '${issueToUpdate2.title}' was not found.`);
+          core2.endGroup();
+          return;
+        }
+        let issuesOnAnyProjectBoard = existingIssues.filter(
+          e2 => e2.node && e2.node.projectCards && e2.node.projectCards.edges && e2.node.projectCards.edges.length > 0
+        );
+        if (!issuesOnAnyProjectBoard || issuesOnAnyProjectBoard.length === 0) {
+          core2.info('None of the issues with matching titles have project cards associated with them.');
+          core2.endGroup();
+          return;
+        }
+        let existingIssue = issuesOnAnyProjectBoard.find(i =>
+          i.node.projectCards.edges.find(pc => pc.node.project && pc.node.project.databaseId == projectBoardId2)
+        );
+        if (!existingIssue) {
+          core2.info(`An issue with the title '${issueToUpdate2.title}' and on project board ${projectBoardId2} was not found.`);
           core2.endGroup();
           return;
         }
         issueToUpdate2.number = existingIssue.node.number;
         issueToUpdate2.body = existingIssue.node.body;
         issueToUpdate2.state = existingIssue.node.state;
-        core2.info(`The issue was found:'#${issueToUpdate2.number} ${issueToUpdate2.title}': `);
+        const projectCard = existingIssue.node.projectCards.edges.find(pc => pc.node.project && pc.node.project.databaseId == projectBoardId2);
+        issueToUpdate2.projectCardId = projectCard.node.databaseId;
         if (existingIssue.node.labels && existingIssue.node.labels.edges && existingIssue.node.labels.edges.length > 0) {
           issueToUpdate2.labels = existingIssue.node.labels.edges.map(l => l.node.name);
         }
-        if (!existingIssue.node.projectCards || !existingIssue.node.projectCards.edges || existingIssue.node.projectCards.edges.length === 0) {
-          core2.info('The issue does not have a project card associated with it.');
-          core2.endGroup();
-          return;
-        }
-        const projectCard = existingIssue.node.projectCards.edges.find(pc => pc.node.project && pc.node.project.databaseId == projectBoardId2);
-        issueToUpdate2.projectCardId = projectCard.node.databaseId;
         core2.info(`A project card was found for '#${issueToUpdate2.number} ${issueToUpdate2.title}': ${issueToUpdate2.projectCardId}`);
         core2.endGroup();
       } catch (error) {
@@ -10377,7 +10362,7 @@ var require_issues = __commonJS({
       core2.info(`The date for this deployment is ${nowString}`);
       return nowString;
     }
-    async function createAnIssueForThisDeploymentIfItDoesNotExist2(issueToUpdate2, labels2, project2, actor2) {
+    async function createAnIssueForThisDeploymentIfItDoesNotExist2(octokit2, ghLogin2, issueToUpdate2, labels2, project2, actor2) {
       try {
         core2.startGroup(`Creating an issue for this deployment since it does not exist...`);
         let workflowUrl = `[${github2.context.runNumber}](https://github.com/${owner}/${repo}/actions/runs/${github2.context.runId})`;
@@ -10385,7 +10370,7 @@ var require_issues = __commonJS({
         let body = `|Env|Workflow|Status|Date|Actor|
 |---|---|---|---|---|
 |${project2.columnName}|${workflowUrl}|${labels2.deployStatus}|${nowString}|${actor2}|`;
-        const { data: response } = await octokit.rest.issues.create({
+        const { data: response } = await octokit2.rest.issues.create({
           owner,
           repo,
           title: issueToUpdate2.title,
@@ -10398,7 +10383,7 @@ var require_issues = __commonJS({
         issueToUpdate2.body = body;
         issueToUpdate2.state = 'OPEN';
         core2.info(`Adding a comment to the issue indicating it was auto-generated by @${ghLogin2}...`);
-        await octokit.rest.issues.createComment({
+        await octokit2.rest.issues.createComment({
           owner,
           repo,
           issue_number: response.number,
@@ -10412,7 +10397,7 @@ var require_issues = __commonJS({
         throw error;
       }
     }
-    async function appendDeploymentDetailsToIssue2(issueToUpdate2, project2, actor2, deployStatus2) {
+    async function appendDeploymentDetailsToIssue2(ghToken2, issueToUpdate2, project2, actor2, deployStatus2) {
       try {
         core2.startGroup(`Appending the deployment details to the issue...`);
         let workflowUrl = `[${github2.context.workflow} #${github2.context.runNumber}](https://github.com/${owner}/${repo}/actions/runs/${github2.context.runId})`;
@@ -10451,32 +10436,33 @@ var require_issues = __commonJS({
 // src/main.js
 var core = require_core();
 var github = require_github();
+var { graphql } = require_dist_node6();
 var { getProjectData, createProjectCard, moveCardToColumn } = require_projects();
 var { findIssuesWithLabel, removeLabelFromIssue, addLabelToIssue, makeSureLabelsForThisActionExist, removeStatusLabelsFromIssue } = require_labels();
 var { findTheIssueForThisDeploymentByTitle, createAnIssueForThisDeploymentIfItDoesNotExist, appendDeploymentDetailsToIssue } = require_issues();
-var ghLogin = core.getInput('github-login');
-var ghToken = core.getInput('github-token');
-var environment = core.getInput('environment');
-var boardNumber = core.getInput('board-number');
-var deployStatus = core.getInput('deploy-status');
-var ref = core.getInput('ref');
+var requiredArgOptions = {
+  required: true,
+  trimWhitespace: true
+};
+var environment = core.getInput('environment', requiredArgOptions);
+var boardNumber = core.getInput('board-number', requiredArgOptions);
+var deployStatus = core.getInput('deploy-status', requiredArgOptions);
+var ref = core.getInput('ref', requiredArgOptions);
 var refType = core.getInput('ref-type');
-var missingArguments = [];
-if (!ghToken) missingArguments.push('github-token');
-if (!environment) missingArguments.push('environment');
-if (!boardNumber) missingArguments.push('board-number');
-if (!ref) missingArguments.push('ref');
-if (!deployStatus) missingArguments.push('deploy-status');
-if (missingArguments && missingArguments.length > 0) {
-  core.setFailed(`To call this action, provided the missing required arguments: ${missingArguments.join(', ')}`);
-  return;
-}
+var deployableType = core.getInput('deployable-type');
+var ghLogin = core.getInput('github-login') || 'github-actions';
+var ghToken = core.getInput('github-token', requiredArgOptions);
+var octokit = github.getOctokit(ghToken);
+var graphqlWithAuth = graphql.defaults({
+  headers: {
+    authorization: `token ${ghToken}`
+  }
+});
 var actor;
 var project;
 var labels;
 var issueToUpdate;
 function setupAction() {
-  if (!ghLogin || ghLogin.length === 0) ghLogin = 'github-actions';
   actor = github.context.actor;
   project = {
     number: boardNumber,
@@ -10514,46 +10500,47 @@ function setupAction() {
       refType = 'branch';
     }
   }
+  const dt = deployableType && deployableType.length > 0 ? `[${deployableType}] ` : '';
   switch (refType.toLowerCase()) {
     case 'branch':
-      issueToUpdate.title = `Branch Deploy: ${ref}`;
+      issueToUpdate.title = `${dt}Branch Deploy: ${ref}`;
       break;
     case 'tag':
-      issueToUpdate.title = `Tag Deploy: ${ref}`;
+      issueToUpdate.title = `${dt}Tag Deploy: ${ref}`;
       break;
     case 'sha':
-      issueToUpdate.title = `SHA Deploy: ${ref}`;
+      issueToUpdate.title = `${dt}SHA Deploy: ${ref}`;
       break;
   }
 }
 async function run() {
-  await getProjectData(project);
-  await makeSureLabelsForThisActionExist(labels);
-  await findTheIssueForThisDeploymentByTitle(issueToUpdate, project.id);
+  await getProjectData(graphqlWithAuth, project);
+  await makeSureLabelsForThisActionExist(octokit, labels);
+  await findTheIssueForThisDeploymentByTitle(graphqlWithAuth, ghLogin, issueToUpdate, project.id);
   let workflowFullyRan = labels.deployStatus === 'success' || labels.deployStatus === 'failure';
   if (workflowFullyRan) {
-    const issuesWithCurrentlyInEnvLabel = await findIssuesWithLabel(labels.currentlyInEnv);
+    const issuesWithCurrentlyInEnvLabel = await findIssuesWithLabel(graphqlWithAuth, labels.currentlyInEnv);
     if (issuesWithCurrentlyInEnvLabel) {
       for (let index = 0; index < issuesWithCurrentlyInEnvLabel.length; index++) {
         const issueNumber = issuesWithCurrentlyInEnvLabel[index];
-        await removeLabelFromIssue(labels.currentlyInEnv, issueNumber);
+        await removeLabelFromIssue(octokit, labels.currentlyInEnv, issueNumber);
       }
     }
   }
   if (issueToUpdate.number === 0) {
-    await createAnIssueForThisDeploymentIfItDoesNotExist(issueToUpdate, labels, project, actor);
+    await createAnIssueForThisDeploymentIfItDoesNotExist(octokit, ghLogin, issueToUpdate, labels, project, actor);
   } else {
-    await appendDeploymentDetailsToIssue(issueToUpdate, project, actor, labels.deployStatus);
-    await removeStatusLabelsFromIssue(issueToUpdate.labels, issueToUpdate.number, labels.deployStatus);
-    await addLabelToIssue(labels.deployStatus, issueToUpdate.number);
+    await appendDeploymentDetailsToIssue(ghToken, issueToUpdate, project, actor, labels.deployStatus);
+    await removeStatusLabelsFromIssue(octokit, issueToUpdate.labels, issueToUpdate.number, labels.deployStatus);
+    await addLabelToIssue(octokit, labels.deployStatus, issueToUpdate.number);
     if (workflowFullyRan) {
-      await addLabelToIssue(labels.currentlyInEnv, issueToUpdate.number);
+      await addLabelToIssue(octokit, labels.currentlyInEnv, issueToUpdate.number);
     }
   }
   if (issueToUpdate.projectCardId === 0) {
-    await createProjectCard(issueToUpdate.nodeId, project.columnNodeId);
+    await createProjectCard(graphqlWithAuth, issueToUpdate.nodeId, project.columnNodeId);
   } else if (workflowFullyRan) {
-    await moveCardToColumn(issueToUpdate.projectCardId, project.columnName, project.columnId);
+    await moveCardToColumn(ghToken, issueToUpdate.projectCardId, project.columnName, project.columnId);
   }
   core.info(`See the project board at: ${project.link}`);
 }

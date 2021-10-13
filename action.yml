@@ -22,6 +22,9 @@ inputs:
   ref-type:
     description: 'The type of ref that was deployed  [branch|tag|sha].  If not provided the action will use some regex patterns to identify the type.'
     required: false
+  deployable-type:
+    description: 'The type of artifact that was deployed like MFE, BFF, API, SVC, DB, etc.  Useful when a release with one tag contains multiple deployable artifacts that are deployed separately.'
+    required: false
   deploy-status:
     description: 'The status of the deployment [success|failure|cancelled|skipped]'
     required: true

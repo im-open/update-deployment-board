@@ -1,5 +1,8 @@
 const core = require('@actions/core');
 const github = require('@actions/github');
+
+const { graphql } = require('@octokit/graphql');
+
 const { getProjectData, createProjectCard, moveCardToColumn } = require('./projects.js');
 const {
   findIssuesWithLabel,
@@ -14,31 +17,31 @@ const {
   appendDeploymentDetailsToIssue
 } = require('./issues.js');
 
-let ghLogin = core.getInput('github-login');
-const ghToken = core.getInput('github-token');
-const environment = core.getInput('environment');
-const boardNumber = core.getInput('board-number');
-const deployStatus = core.getInput('deploy-status');
-const ref = core.getInput('ref');
-let refType = core.getInput('ref-type');
+const requiredArgOptions = {
+  required: true,
+  trimWhitespace: true
+};
 
-//Check for any missing arguments that are required
-let missingArguments = [];
-if (!ghToken) missingArguments.push('github-token');
-if (!environment) missingArguments.push('environment');
-if (!boardNumber) missingArguments.push('board-number');
-if (!ref) missingArguments.push('ref');
-if (!deployStatus) missingArguments.push('deploy-status');
-if (missingArguments && missingArguments.length > 0) {
-  core.setFailed(`To call this action, provided the missing required arguments: ${missingArguments.join(', ')}`);
-  return;
-}
+const environment = core.getInput('environment', requiredArgOptions);
+const boardNumber = core.getInput('board-number', requiredArgOptions);
+const deployStatus = core.getInput('deploy-status', requiredArgOptions);
+const ref = core.getInput('ref', requiredArgOptions);
+let refType = core.getInput('ref-type');
+const deployableType = core.getInput('deployable-type');
+
+const ghLogin = core.getInput('github-login') || 'github-actions';
+const ghToken = core.getInput('github-token', requiredArgOptions);
+
+const octokit = github.getOctokit(ghToken);
+const graphqlWithAuth = graphql.defaults({
+  headers: {
+    authorization: `token ${ghToken}`
+  }
+});
 
 let actor, project, labels, issueToUpdate;
 
 function setupAction() {
-  if (!ghLogin || ghLogin.length === 0) ghLogin = 'github-actions';
-
   actor = github.context.actor;
 
   project = {
@@ -82,56 +85,57 @@ function setupAction() {
     }
   }
 
+  const dt = deployableType && deployableType.length > 0 ? `[${deployableType}] ` : '';
   switch (refType.toLowerCase()) {
     case 'branch':
-      issueToUpdate.title = `Branch Deploy: ${ref}`;
+      issueToUpdate.title = `${dt}Branch Deploy: ${ref}`;
       break;
     case 'tag':
-      issueToUpdate.title = `Tag Deploy: ${ref}`;
+      issueToUpdate.title = `${dt}Tag Deploy: ${ref}`;
       break;
     case 'sha':
-      issueToUpdate.title = `SHA Deploy: ${ref}`;
+      issueToUpdate.title = `${dt}SHA Deploy: ${ref}`;
       break;
   }
 }
 
 async function run() {
-  await getProjectData(project);
+  await getProjectData(graphqlWithAuth, project);
 
-  await makeSureLabelsForThisActionExist(labels);
+  await makeSureLabelsForThisActionExist(octokit, labels);
 
-  await findTheIssueForThisDeploymentByTitle(issueToUpdate, project.id);
+  await findTheIssueForThisDeploymentByTitle(graphqlWithAuth, ghLogin, issueToUpdate, project.id);
 
   //We only want to remove the currently-in-* label if the status was success or failure.
   //If the status was cancelled or skipped, we don't really know what is currently where so don't change anything.
   let workflowFullyRan = labels.deployStatus === 'success' || labels.deployStatus === 'failure';
 
   if (workflowFullyRan) {
-    const issuesWithCurrentlyInEnvLabel = await findIssuesWithLabel(labels.currentlyInEnv);
+    const issuesWithCurrentlyInEnvLabel = await findIssuesWithLabel(graphqlWithAuth, labels.currentlyInEnv);
     if (issuesWithCurrentlyInEnvLabel) {
       for (let index = 0; index < issuesWithCurrentlyInEnvLabel.length; index++) {
         const issueNumber = issuesWithCurrentlyInEnvLabel[index];
-        await removeLabelFromIssue(labels.currentlyInEnv, issueNumber);
+        await removeLabelFromIssue(octokit, labels.currentlyInEnv, issueNumber);
       }
     }
   }
 
   if (issueToUpdate.number === 0) {
-    await createAnIssueForThisDeploymentIfItDoesNotExist(issueToUpdate, labels, project, actor);
+    await createAnIssueForThisDeploymentIfItDoesNotExist(octokit, ghLogin, issueToUpdate, labels, project, actor);
   } else {
-    await appendDeploymentDetailsToIssue(issueToUpdate, project, actor, labels.deployStatus);
-    await removeStatusLabelsFromIssue(issueToUpdate.labels, issueToUpdate.number, labels.deployStatus);
-    await addLabelToIssue(labels.deployStatus, issueToUpdate.number);
+    await appendDeploymentDetailsToIssue(ghToken, issueToUpdate, project, actor, labels.deployStatus);
+    await removeStatusLabelsFromIssue(octokit, issueToUpdate.labels, issueToUpdate.number, labels.deployStatus);
+    await addLabelToIssue(octokit, labels.deployStatus, issueToUpdate.number);
 
     if (workflowFullyRan) {
-      await addLabelToIssue(labels.currentlyInEnv, issueToUpdate.number);
+      await addLabelToIssue(octokit, labels.currentlyInEnv, issueToUpdate.number);
     }
   }
 
   if (issueToUpdate.projectCardId === 0) {
-    await createProjectCard(issueToUpdate.nodeId, project.columnNodeId);
+    await createProjectCard(graphqlWithAuth, issueToUpdate.nodeId, project.columnNodeId);
   } else if (workflowFullyRan) {
-    await moveCardToColumn(issueToUpdate.projectCardId, project.columnName, project.columnId);
+    await moveCardToColumn(ghToken, issueToUpdate.projectCardId, project.columnName, project.columnId);
   }
 
   core.info(`See the project board at: ${project.link}`);
