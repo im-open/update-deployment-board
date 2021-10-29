@@ -114,7 +114,7 @@ async function removeStatusLabelsFromIssue(octokit, existingLabels, issueNumber,
   }
 }
 
-async function findIssuesWithLabel(graphqlWithAuth, labelName) {
+async function findIssuesWithLabel(graphqlWithAuth, labelName, projectNumber) {
   try {
     core.startGroup(`Finding issuess with label '${labelName}'...`);
 
@@ -125,6 +125,16 @@ async function findIssuesWithLabel(graphqlWithAuth, labelName) {
           edges {
             node {
               number
+              projectCards {
+                edges {
+                  node {
+                    project {
+                      id
+                      number
+                    }
+                  }
+                }
+              }
             }
           }
         }
@@ -138,8 +148,19 @@ async function findIssuesWithLabel(graphqlWithAuth, labelName) {
       return [];
     }
 
-    const issues = response.repository.issues.edges.map(ri => ri.node.number);
-    core.info(`There following issues had label '${labelName}': ${issues}`);
+    // Filter by project number
+    const issuesPerBoard = response.repository.issues.edges
+      .filter(
+        issueEdge =>
+          issueEdge.node.projectCards.length > 0 &&
+          issue.edges.node.projectCards.edges.filter(projectEdge => projectEdge.node.project.number == projectNumber).length > 0
+      )
+      .map(ri => ri.node.number);
+
+    const issues = response.repository.issues.edges
+      .filter(ri => projectNumber === 0 || issuesPerBoard.includes(ri.node.number))
+      .map(ri => ri.node.number);
+    core.info(`The following issues had label '${labelName}': ${issues}`);
     core.endGroup();
     return issues;
   } catch (error) {

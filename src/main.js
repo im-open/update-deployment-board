@@ -111,7 +111,7 @@ async function run() {
   let workflowFullyRan = labels.deployStatus === 'success' || labels.deployStatus === 'failure';
 
   if (workflowFullyRan) {
-    const issuesWithCurrentlyInEnvLabel = await findIssuesWithLabel(graphqlWithAuth, labels.currentlyInEnv);
+    const issuesWithCurrentlyInEnvLabel = await findIssuesWithLabel(graphqlWithAuth, labels.currentlyInEnv, project.number);
     if (issuesWithCurrentlyInEnvLabel) {
       for (let index = 0; index < issuesWithCurrentlyInEnvLabel.length; index++) {
         const issueNumber = issuesWithCurrentlyInEnvLabel[index];
