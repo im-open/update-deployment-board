@@ -2,15 +2,17 @@
 
 This action creates a visual representation of deployments on a Project board in your GitHub repository.  When this action is included in a workflow that does a deployment it will generate or update an existing issue and include it on the specified project board.  
 
-  - [Project Board](#project-board)
-  - [Action Conventions](#action-conventions)
-  - [Inputs](#inputs)
-  - [Example](#example)
-  - [Contributing](#contributing)
-    - [Recompiling](#recompiling)
-    - [Incrementing the Version](#incrementing-the-version)
-  - [Code of Conduct](#code-of-conduct)
-  - [License](#license)
+## Index
+
+- [Project Board](#project-board)
+- [Action Conventions](#action-conventions)
+- [Inputs](#inputs)
+- [Example](#example)
+- [Contributing](#contributing)
+  - [Recompiling](#recompiling)
+  - [Incrementing the Version](#incrementing-the-version)
+- [Code of Conduct](#code-of-conduct)
+- [License](#license)
   
 <kbd><img src="./docs/project-board.png"></img></kbd>
 
@@ -109,7 +111,7 @@ jobs:
       - name: Update deployment board with Defaults
         id: defaults
         continue-on-error: true                             # Setting to true so the job doesn't fail if updating the board fails.
-        uses: im-open/update-deployment-board@v1.3.1
+        uses: im-open/update-deployment-board@v1.3.2
         with:
           github-token: ${{ secrets.GITHUB_TOKEN}}          # If a different token is used, update github-login with the corresponding account
           environment: 'QA'
@@ -120,7 +122,7 @@ jobs:
       - name: Update deployment board with all values provided
         id: provided
         continue-on-error: true                             # Setting to true so the job doesn't fail if updating the board fails.
-        uses: im-open/update-deployment-board@v1.3.1
+        uses: im-open/update-deployment-board@v1.3.2
         with:
           github-token: ${{ secrets.BOT_TOKEN}}             # Since a different token is used, the github-login should be set to the corresponding acct
           github-login: 'my-bot'
@@ -178,5 +180,6 @@ This project has adopted the [im-open's Code of Conduct](https://github.com/im-o
 
 Copyright &copy; 2021, Extend Health, LLC. Code released under the [MIT license](LICENSE).
 
+[git-version-lite]: https://github.com/im-open/git-version-lite
 [the board]: https://github.com/im-open/update-deployment-board/projects/1
 [cleanup-deployment-board]: https://github.com/im-open/cleanup-deployment-board
