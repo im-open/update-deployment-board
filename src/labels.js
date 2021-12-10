@@ -114,7 +114,7 @@ async function removeStatusLabelsFromIssue(octokit, existingLabels, issueNumber,
   }
 }
 
-async function findIssuesWithLabel(graphqlWithAuth, labelName) {
+async function findIssuesWithLabel(graphqlWithAuth, labelName, deployableType) {
   try {
     core.startGroup(`Finding issuess with label '${labelName}'...`);
 
@@ -124,7 +124,8 @@ async function findIssuesWithLabel(graphqlWithAuth, labelName) {
         issues(first: 100, filterBy: {labels: ["${labelName}"]}) {
           edges {
             node {
-              number
+              number,
+              title
             }
           }
         }
@@ -138,10 +139,19 @@ async function findIssuesWithLabel(graphqlWithAuth, labelName) {
       return [];
     }
 
-    const issues = response.repository.issues.edges.map(ri => ri.node.number);
-    core.info(`There following issues had label '${labelName}': ${issues}`);
-    core.endGroup();
-    return issues;
+    if (deployableType && deployableType.length > 0) {
+      const issues = response.repository.issues.edges
+        .filter(ri => ri.node.title.toLowerCase().indexOf(deployableType.toLowerCase()) > -1)
+        .map(ri => ri.node.number);
+      core.info(`The following issues had label '${labelName} and deployable type: ${deployableType}': ${issues}`);
+      core.endGroup();
+      return issues;
+    } else {
+      const issues = response.repository.issues.edges.map(ri => ri.node.number);
+      core.info(`The following issues had label '${labelName}': ${issues}`);
+      core.endGroup();
+      return issues;
+    }
   } catch (error) {
     core.info(`An error occurred retrieving issues with the '${labelName}' label: ${error}`);
     core.info(`You may need to manually remove the ${labelName} from other issues`);
