@@ -69,7 +69,8 @@ function setupAction() {
     body: '',
     state: 'OPEN',
     projectCardId: 0,
-    nodeId: ''
+    nodeId: '',
+    deployableType: deployableType && deployableType.length > 0 ? `[${deployableType}] ` : ''
   };
 
   if (!refType || refType.length === 0) {
@@ -85,16 +86,15 @@ function setupAction() {
     }
   }
 
-  const dt = deployableType && deployableType.length > 0 ? `[${deployableType}] ` : '';
   switch (refType.toLowerCase()) {
     case 'branch':
-      issueToUpdate.title = `${dt}Branch Deploy: ${ref}`;
+      issueToUpdate.title = `${issueToUpdate.deployableType}Branch Deploy: ${ref}`;
       break;
     case 'tag':
-      issueToUpdate.title = `${dt}Tag Deploy: ${ref}`;
+      issueToUpdate.title = `${issueToUpdate.deployableType}Tag Deploy: ${ref}`;
       break;
     case 'sha':
-      issueToUpdate.title = `${dt}SHA Deploy: ${ref}`;
+      issueToUpdate.title = `${issueToUpdate.deployableType}SHA Deploy: ${ref}`;
       break;
   }
 }
@@ -111,7 +111,7 @@ async function run() {
   let workflowFullyRan = labels.deployStatus === 'success' || labels.deployStatus === 'failure';
 
   if (workflowFullyRan) {
-    const issuesWithCurrentlyInEnvLabel = await findIssuesWithLabel(graphqlWithAuth, labels.currentlyInEnv);
+    const issuesWithCurrentlyInEnvLabel = await findIssuesWithLabel(graphqlWithAuth, labels.currentlyInEnv, issueToUpdate.deployableType);
     if (issuesWithCurrentlyInEnvLabel) {
       for (let index = 0; index < issuesWithCurrentlyInEnvLabel.length; index++) {
         const issueNumber = issuesWithCurrentlyInEnvLabel[index];

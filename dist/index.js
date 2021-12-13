@@ -7573,7 +7573,7 @@ var require_labels = __commonJS({
         core2.endGroup();
       }
     }
-    async function findIssuesWithLabel2(graphqlWithAuth2, labelName) {
+    async function findIssuesWithLabel2(graphqlWithAuth2, labelName, deployableType2) {
       try {
         core2.startGroup(`Finding issuess with label '${labelName}'...`);
         const query = `
@@ -7582,7 +7582,8 @@ var require_labels = __commonJS({
         issues(first: 100, filterBy: {labels: ["${labelName}"]}) {
           edges {
             node {
-              number
+              number,
+              title
             }
           }
         }
@@ -7594,10 +7595,19 @@ var require_labels = __commonJS({
           core2.endGroup();
           return [];
         }
-        const issues = response.repository.issues.edges.map(ri => ri.node.number);
-        core2.info(`There following issues had label '${labelName}': ${issues}`);
-        core2.endGroup();
-        return issues;
+        if (deployableType2 && deployableType2.length > 0) {
+          const issues = response.repository.issues.edges
+            .filter(ri => ri.node.title.toLowerCase().indexOf(deployableType2.toLowerCase()) > -1)
+            .map(ri => ri.node.number);
+          core2.info(`The following issues had label '${labelName} and deployable type: ${deployableType2}': ${issues}`);
+          core2.endGroup();
+          return issues;
+        } else {
+          const issues = response.repository.issues.edges.map(ri => ri.node.number);
+          core2.info(`The following issues had label '${labelName}': ${issues}`);
+          core2.endGroup();
+          return issues;
+        }
       } catch (error) {
         core2.info(`An error occurred retrieving issues with the '${labelName}' label: ${error}`);
         core2.info(`You may need to manually remove the ${labelName} from other issues`);
@@ -10661,7 +10671,8 @@ function setupAction() {
     body: '',
     state: 'OPEN',
     projectCardId: 0,
-    nodeId: ''
+    nodeId: '',
+    deployableType: deployableType && deployableType.length > 0 ? `[${deployableType}] ` : ''
   };
   if (!refType || refType.length === 0) {
     const shaPattern = /\b([0-9a-f]{40})\b/g;
@@ -10674,16 +10685,15 @@ function setupAction() {
       refType = 'branch';
     }
   }
-  const dt = deployableType && deployableType.length > 0 ? `[${deployableType}] ` : '';
   switch (refType.toLowerCase()) {
     case 'branch':
-      issueToUpdate.title = `${dt}Branch Deploy: ${ref}`;
+      issueToUpdate.title = `${issueToUpdate.deployableType}Branch Deploy: ${ref}`;
       break;
     case 'tag':
-      issueToUpdate.title = `${dt}Tag Deploy: ${ref}`;
+      issueToUpdate.title = `${issueToUpdate.deployableType}Tag Deploy: ${ref}`;
       break;
     case 'sha':
-      issueToUpdate.title = `${dt}SHA Deploy: ${ref}`;
+      issueToUpdate.title = `${issueToUpdate.deployableType}SHA Deploy: ${ref}`;
       break;
   }
 }
@@ -10693,7 +10703,7 @@ async function run() {
   await findTheIssueForThisDeploymentByTitle(graphqlWithAuth, ghLogin, issueToUpdate, project.id);
   let workflowFullyRan = labels.deployStatus === 'success' || labels.deployStatus === 'failure';
   if (workflowFullyRan) {
-    const issuesWithCurrentlyInEnvLabel = await findIssuesWithLabel(graphqlWithAuth, labels.currentlyInEnv);
+    const issuesWithCurrentlyInEnvLabel = await findIssuesWithLabel(graphqlWithAuth, labels.currentlyInEnv, issueToUpdate.deployableType);
     if (issuesWithCurrentlyInEnvLabel) {
       for (let index = 0; index < issuesWithCurrentlyInEnvLabel.length; index++) {
         const issueNumber = issuesWithCurrentlyInEnvLabel[index];
