@@ -31,7 +31,7 @@ async function listLabelsForRepo(octokit) {
     core.info(`No labels were found for the ${owner}/${repo} repository.`);
     return [];
   } catch (error) {
-    core.info(`An error occurred while retrieving the labels for ${owner}/${repo}: ${e}`);
+    core.info(`An error occurred while retrieving the labels for ${owner}/${repo}: ${error}`);
     return [];
   }
 }
@@ -47,7 +47,7 @@ async function createLabel(octokit, name, color) {
     });
     core.info(`Successfully created the ${name} label.`);
   } catch (error) {
-    core.setFailed(`An error occurred while creating the '${name}' label: ${e}`);
+    core.setFailed(`An error occurred while creating the '${name}' label: ${error}`);
     throw error;
   }
 }
@@ -63,9 +63,9 @@ async function addLabelToIssue(octokit, name, issue_number) {
     });
     core.info(`Successfully added label '${name}' to issue #${issue_number}...`);
     core.endGroup();
-  } catch (e) {
+  } catch (error) {
     //Don't immediately fail by throwing, let it see what else it can finish.
-    core.setFailed(`An error occurred while adding the '${name}' label from issue #${issue_number}: ${e}`);
+    core.setFailed(`An error occurred while adding the '${name}' label from issue #${issue_number}: ${error}`);
     core.endGroup();
   }
 }
@@ -81,9 +81,9 @@ async function removeLabelFromIssue(octokit, labelName, issue_number) {
     });
     core.info(`Successfully removed label ${labelName} from issue #${issue_number}.`);
     core.endGroup();
-  } catch (e) {
+  } catch (error) {
     //Don't immediately fail by throwing, let it see what else it can finish.
-    core.setFailed(`An error occurred while removing the '${labelName}' label from issue #${issue_number}: ${e}`);
+    core.setFailed(`An error occurred while removing the '${labelName}' label from issue #${issue_number}: ${error}`);
     core.endGroup();
   }
 }

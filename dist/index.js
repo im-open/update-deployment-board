@@ -142,15 +142,15 @@ var require_core = __commonJS({
           function fulfilled(value) {
             try {
               step(generator.next(value));
-            } catch (e2) {
-              reject(e2);
+            } catch (e) {
+              reject(e);
             }
           }
           function rejected(value) {
             try {
               step(generator['throw'](value));
-            } catch (e2) {
-              reject(e2);
+            } catch (e) {
+              reject(e);
             }
           }
           function step(result) {
@@ -1797,7 +1797,7 @@ var require_lib = __commonJS({
     var convert;
     try {
       convert = require('encoding').convert;
-    } catch (e2) {}
+    } catch (e) {}
     var INTERNALS = Symbol('Body internals');
     var PassThrough = Stream.PassThrough;
     function Body(body) {
@@ -6291,8 +6291,8 @@ var require_follow_redirects = __commonJS({
       var request = (this._currentRequest = nativeProtocol.request(this._options, this._onNativeResponse));
       this._currentUrl = url.format(this._options);
       request._redirectable = this;
-      for (var e2 = 0; e2 < events.length; e2++) {
-        request.on(events[e2], eventHandlers[events[e2]]);
+      for (var e = 0; e < events.length; e++) {
+        request.on(events[e], eventHandlers[events[e]]);
       }
       if (this._isRedirect) {
         var i = 0;
@@ -6464,8 +6464,8 @@ var require_follow_redirects = __commonJS({
       return CustomError;
     }
     function abortRequest(request) {
-      for (var e2 = 0; e2 < events.length; e2++) {
-        request.removeListener(events[e2], eventHandlers[events[e2]]);
+      for (var e = 0; e < events.length; e++) {
+        request.removeListener(events[e], eventHandlers[events[e]]);
       }
       request.on('error', noop);
       request.abort();
@@ -6784,9 +6784,9 @@ var require_defaults = __commonJS({
         try {
           (parser || JSON.parse)(rawValue);
           return utils.trim(rawValue);
-        } catch (e2) {
-          if (e2.name !== 'SyntaxError') {
-            throw e2;
+        } catch (e) {
+          if (e.name !== 'SyntaxError') {
+            throw e;
           }
         }
       }
@@ -6836,12 +6836,12 @@ var require_defaults = __commonJS({
           if (strictJSONParsing || (forcedJSONParsing && utils.isString(data) && data.length)) {
             try {
               return JSON.parse(data);
-            } catch (e2) {
+            } catch (e) {
               if (strictJSONParsing) {
-                if (e2.name === 'SyntaxError') {
-                  throw enhanceError(e2, this, 'E_JSON_PARSE');
+                if (e.name === 'SyntaxError') {
+                  throw enhanceError(e, this, 'E_JSON_PARSE');
                 }
-                throw e2;
+                throw e;
               }
             }
           }
@@ -7415,7 +7415,7 @@ var require_projects = __commonJS({
         core2.info(`	${projectToUpdate.columnName} Column Node ID: '${projectToUpdate.columnNodeId}'`);
         core2.endGroup();
       } catch (error) {
-        core2.setFailed(`An error occurred getting data for the Project #${projectBoardId}: ${e}`);
+        core2.setFailed(`An error occurred getting data for the Project #${projectBoardId}: ${error}`);
         core2.endGroup();
         throw error;
       }
@@ -7432,7 +7432,7 @@ var require_projects = __commonJS({
         core2.info(`A project card was successfully created.`);
         core2.endGroup();
       } catch (error) {
-        core2.setFailed(`An error occurred adding the issue to the project: ${e}`);
+        core2.setFailed(`An error occurred adding the issue to the project: ${error}`);
         core2.endGroup();
         throw error;
       }
@@ -7500,7 +7500,7 @@ var require_labels = __commonJS({
         core2.info(`No labels were found for the ${owner}/${repo} repository.`);
         return [];
       } catch (error) {
-        core2.info(`An error occurred while retrieving the labels for ${owner}/${repo}: ${e}`);
+        core2.info(`An error occurred while retrieving the labels for ${owner}/${repo}: ${error}`);
         return [];
       }
     }
@@ -7515,7 +7515,7 @@ var require_labels = __commonJS({
         });
         core2.info(`Successfully created the ${name} label.`);
       } catch (error) {
-        core2.setFailed(`An error occurred while creating the '${name}' label: ${e}`);
+        core2.setFailed(`An error occurred while creating the '${name}' label: ${error}`);
         throw error;
       }
     }
@@ -7530,8 +7530,8 @@ var require_labels = __commonJS({
         });
         core2.info(`Successfully added label '${name}' to issue #${issue_number}...`);
         core2.endGroup();
-      } catch (e2) {
-        core2.setFailed(`An error occurred while adding the '${name}' label from issue #${issue_number}: ${e2}`);
+      } catch (error) {
+        core2.setFailed(`An error occurred while adding the '${name}' label from issue #${issue_number}: ${error}`);
         core2.endGroup();
       }
     }
@@ -7546,8 +7546,8 @@ var require_labels = __commonJS({
         });
         core2.info(`Successfully removed label ${labelName} from issue #${issue_number}.`);
         core2.endGroup();
-      } catch (e2) {
-        core2.setFailed(`An error occurred while removing the '${labelName}' label from issue #${issue_number}: ${e2}`);
+      } catch (error) {
+        core2.setFailed(`An error occurred while removing the '${labelName}' label from issue #${issue_number}: ${error}`);
         core2.endGroup();
       }
     }
@@ -10502,7 +10502,7 @@ var require_issues = __commonJS({
           return;
         }
         let issuesOnAnyProjectBoard = existingIssues.filter(
-          e2 => e2.node && e2.node.projectCards && e2.node.projectCards.edges && e2.node.projectCards.edges.length > 0
+          e => e.node && e.node.projectCards && e.node.projectCards.edges && e.node.projectCards.edges.length > 0
         );
         if (!issuesOnAnyProjectBoard || issuesOnAnyProjectBoard.length === 0) {
           core2.info('None of the issues with matching titles have project cards associated with them.');
