@@ -69,7 +69,7 @@ async function getProjectData(graphqlWithAuth, projectToUpdate) {
     core.info(`\t${projectToUpdate.columnName} Column Node ID: '${projectToUpdate.columnNodeId}'`);
     core.endGroup();
   } catch (error) {
-    core.setFailed(`An error occurred getting data for the Project #${projectBoardId}: ${e}`);
+    core.setFailed(`An error occurred getting data for the Project #${projectBoardId}: ${error}`);
     core.endGroup();
     throw error;
   }
@@ -89,7 +89,7 @@ async function createProjectCard(graphqlWithAuth, issue_number, columnId) {
     core.info(`A project card was successfully created.`);
     core.endGroup();
   } catch (error) {
-    core.setFailed(`An error occurred adding the issue to the project: ${e}`);
+    core.setFailed(`An error occurred adding the issue to the project: ${error}`);
     core.endGroup();
     throw error;
   }
