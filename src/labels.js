@@ -13,19 +13,44 @@ const colors = {
 };
 
 async function listLabelsForRepo(octokit) {
+  let hasMoreLabels = true;
+  let labelsToReturn = [];
+  let page = 1;
+  const maxResultsPerPage = 40;
+
   try {
     core.info(`Retrieving the existing labels for this repository...`);
-    const { data: existingLabels } = await octokit.rest.issues.listLabelsForRepo({
-      owner,
-      repo
-    });
 
-    if (existingLabels && existingLabels.length > 0) {
-      const labels = existingLabels.map(el => el.name.toLowerCase());
-      if (labels && labels.length > 0) {
-        core.info(`The following labels were found in the ${owner}/${repo} repository: ${labels.join(', ')}`);
-        return labels;
+    while (hasMoreLabels) {
+      const response = await octokit.rest.issues.listLabelsForRepo({
+        owner,
+        repo,
+        per_page: maxResultsPerPage,
+        page: page
+      });
+
+      if (response.status == 200) {
+        if (response.data) {
+          if (response.data.length < maxResultsPerPage) {
+            hasMoreLabels = false;
+          } else {
+            page += 1;
+          }
+
+          for (let index = 0; index < response.data.length; index++) {
+            let label = response.data[index];
+            labelsToReturn.push(label.name.toLowerCase());
+          }
+        } else {
+          core.info('Finished getting labels for the repository.');
+        }
+      } else {
+        core.setFailed(`An error occurred retrieving page ${page} of labels.`);
       }
+    }
+    if (labelsToReturn.length > 0) {
+      core.info(`The following labels were found in the ${owner}/${repo} repository: ${labelsToReturn.join(', ')}`);
+      return labelsToReturn;
     }
 
     core.info(`No labels were found for the ${owner}/${repo} repository.`);
