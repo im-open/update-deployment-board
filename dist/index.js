@@ -7484,18 +7484,40 @@ var require_labels = __commonJS({
       current: 'FBCA04'
     };
     async function listLabelsForRepo(octokit2) {
+      let hasMoreLabels = true;
+      let labelsToReturn = [];
+      let page = 1;
+      const maxResultsPerPage = 40;
       try {
         core2.info(`Retrieving the existing labels for this repository...`);
-        const { data: existingLabels } = await octokit2.rest.issues.listLabelsForRepo({
-          owner,
-          repo
-        });
-        if (existingLabels && existingLabels.length > 0) {
-          const labels2 = existingLabels.map(el => el.name.toLowerCase());
-          if (labels2 && labels2.length > 0) {
-            core2.info(`The following labels were found in the ${owner}/${repo} repository: ${labels2.join(', ')}`);
-            return labels2;
+        while (hasMoreLabels) {
+          const response = await octokit2.rest.issues.listLabelsForRepo({
+            owner,
+            repo,
+            per_page: maxResultsPerPage,
+            page
+          });
+          if (response.status == 200) {
+            if (response.data) {
+              if (response.data.length < maxResultsPerPage) {
+                hasMoreLabels = false;
+              } else {
+                page += 1;
+              }
+              for (let index = 0; index < response.data.length; index++) {
+                let label = response.data[index];
+                labelsToReturn.push(label.name.toLowerCase());
+              }
+            } else {
+              core2.info('Finished getting labels for the repository.');
+            }
+          } else {
+            core2.setFailed(`An error occurred retrieving page ${page} of labels.`);
           }
+        }
+        if (labelsToReturn.length > 0) {
+          core2.info(`The following labels were found in the ${owner}/${repo} repository: ${labelsToReturn.join(', ')}`);
+          return labelsToReturn;
         }
         core2.info(`No labels were found for the ${owner}/${repo} repository.`);
         return [];
