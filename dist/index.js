@@ -6120,7 +6120,7 @@ var require_follow_redirects = __commonJS({
         this._redirectable.emit(event, arg1, arg2, arg3);
       };
     });
-    var RedirectionError = createErrorType('ERR_FR_REDIRECTION_FAILURE', '');
+    var RedirectionError = createErrorType('ERR_FR_REDIRECTION_FAILURE', 'Redirected request failed');
     var TooManyRedirectsError = createErrorType('ERR_FR_TOO_MANY_REDIRECTS', 'Maximum number of redirects exceeded');
     var MaxBodyLengthExceededError = createErrorType('ERR_FR_MAX_BODY_LENGTH_EXCEEDED', 'Request body larger than maxBodyLength limit');
     var WriteAfterEndError = createErrorType('ERR_STREAM_WRITE_AFTER_END', 'write after end');
@@ -6225,6 +6225,9 @@ var require_follow_redirects = __commonJS({
           clearTimeout(self._timeout);
           self._timeout = null;
         }
+        self.removeListener('abort', clearTimer);
+        self.removeListener('error', clearTimer);
+        self.removeListener('response', clearTimer);
         if (callback) {
           self.removeListener('timeout', callback);
         }
@@ -6241,8 +6244,9 @@ var require_follow_redirects = __commonJS({
         this._currentRequest.once('socket', startTimer);
       }
       this.on('socket', destroyOnTimeout);
-      this.once('response', clearTimer);
-      this.once('error', clearTimer);
+      this.on('abort', clearTimer);
+      this.on('error', clearTimer);
+      this.on('response', clearTimer);
       return this;
     };
     ['flushHeaders', 'getHeader', 'setNoDelay', 'setSocketKeepAlive'].forEach(function (method) {
@@ -6339,14 +6343,23 @@ var require_follow_redirects = __commonJS({
           this._requestBodyBuffers = [];
           removeMatchingHeaders(/^content-/i, this._options.headers);
         }
-        var previousHostName = removeMatchingHeaders(/^host$/i, this._options.headers) || url.parse(this._currentUrl).hostname;
-        var redirectUrl = url.resolve(this._currentUrl, location);
+        var currentHostHeader = removeMatchingHeaders(/^host$/i, this._options.headers);
+        var currentUrlParts = url.parse(this._currentUrl);
+        var currentHost = currentHostHeader || currentUrlParts.host;
+        var currentUrl = /^\w+:/.test(location) ? this._currentUrl : url.format(Object.assign(currentUrlParts, { host: currentHost }));
+        var redirectUrl;
+        try {
+          redirectUrl = url.resolve(currentUrl, location);
+        } catch (cause) {
+          this.emit('error', new RedirectionError(cause));
+          return;
+        }
         debug('redirecting to', redirectUrl);
         this._isRedirect = true;
         var redirectUrlParts = url.parse(redirectUrl);
         Object.assign(this._options, redirectUrlParts);
-        if (redirectUrlParts.hostname !== previousHostName) {
-          removeMatchingHeaders(/^authorization$/i, this._options.headers);
+        if (redirectUrlParts.protocol !== currentUrlParts.protocol || !isSameOrSubdomain(redirectUrlParts.host, currentHost)) {
+          removeMatchingHeaders(/^(?:authorization|cookie)$/i, this._options.headers);
         }
         if (typeof this._options.beforeRedirect === 'function') {
           var responseDetails = { headers: response.headers };
@@ -6361,9 +6374,7 @@ var require_follow_redirects = __commonJS({
         try {
           this._performRequest();
         } catch (cause) {
-          var error = new RedirectionError('Redirected request failed: ' + cause.message);
-          error.cause = cause;
-          this.emit('error', error);
+          this.emit('error', new RedirectionError(cause));
         }
       } else {
         response.responseUrl = this._currentUrl;
@@ -6450,12 +6461,17 @@ var require_follow_redirects = __commonJS({
           delete headers[header];
         }
       }
-      return lastValue;
+      return lastValue === null || typeof lastValue === 'undefined' ? void 0 : String(lastValue).trim();
     }
     function createErrorType(code, defaultMessage) {
-      function CustomError(message) {
+      function CustomError(cause) {
         Error.captureStackTrace(this, this.constructor);
-        this.message = message || defaultMessage;
+        if (!cause) {
+          this.message = defaultMessage;
+        } else {
+          this.message = defaultMessage + ': ' + cause.message;
+          this.cause = cause;
+        }
       }
       CustomError.prototype = new Error();
       CustomError.prototype.constructor = CustomError;
@@ -6469,6 +6485,13 @@ var require_follow_redirects = __commonJS({
       }
       request.on('error', noop);
       request.abort();
+    }
+    function isSameOrSubdomain(subdomain, domain) {
+      if (subdomain === domain) {
+        return true;
+      }
+      const dot = subdomain.length - domain.length - 1;
+      return dot > 0 && subdomain[dot] === '.' && subdomain.endsWith(domain);
     }
     module2.exports = wrap({ http, https });
     module2.exports.wrap = wrap;
