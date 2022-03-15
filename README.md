@@ -22,8 +22,7 @@ When the action runs it will label the issue with three labels
      - In the screenshot above, the issue for `Tag Deploy: v2.1` has the labels for `🚀currently-in-qa` and `🚀currently-in-stage` because that code is deployed to both environments.  The label will stay on a card even if it moves to another column until a different branch, tag or SHA is deployed to that environment.
   2. Deployment Status `success|failure|skipped|cancelled`. 
      - The status matches the possible values for step outcomes and this cannot be changed.
-  3. Default Label
-   `deployment-board`.
+  3. Default Label `deployment-board`.
      - This label is used to filter out these labels in the Github Issues UI
 
 The issue will contain a list of deployments for the ref which include the environment, a link to the workflow run, the status, date of deployment and the actor who kicked off the workflow.  
