@@ -16,13 +16,14 @@ This action creates a visual representation of deployments on a Project board in
   
 <kbd><img src="./docs/project-board.png"></img></kbd>
 
-When the action runs it will label the issue with two labels
+When the action runs it will label the issue with three labels
   1. `🚀currently-in-<dev|qa|stage|prod|other-provided-env>` 
      - This label makes it visually easy to see which branch, tag or SHA was most recently deployed to a specific environment and it is meant to stay with the card representing code that is currently deployed to that environment.  
      - In the screenshot above, the issue for `Tag Deploy: v2.1` has the labels for `🚀currently-in-qa` and `🚀currently-in-stage` because that code is deployed to both environments.  The label will stay on a card even if it moves to another column until a different branch, tag or SHA is deployed to that environment.
   2. Deployment Status `success|failure|skipped|cancelled`. 
-     - The status matches the possible values for step outcomes and this cannot be changed. 
-
+     - The status matches the possible values for step outcomes and this cannot be changed.
+  3. Default Label `deployment-board`.
+     - This label is used to filter out these issues in the Github Issues UI
 
 The issue will contain a list of deployments for the ref which include the environment, a link to the workflow run, the status, date of deployment and the actor who kicked off the workflow.  
 <kbd><img src="./docs/issue-details.png"></img></kbd>
@@ -111,7 +112,7 @@ jobs:
       - name: Update deployment board with Defaults
         id: defaults
         continue-on-error: true                             # Setting to true so the job doesn't fail if updating the board fails.
-        uses: im-open/update-deployment-board@v1.3.8
+        uses: im-open/update-deployment-board@v1.4.0
         with:
           github-token: ${{ secrets.GITHUB_TOKEN}}          # If a different token is used, update github-login with the corresponding account
           environment: 'QA'
@@ -122,7 +123,7 @@ jobs:
       - name: Update deployment board with all values provided
         id: provided
         continue-on-error: true                             # Setting to true so the job doesn't fail if updating the board fails.
-        uses: im-open/update-deployment-board@v1.3.8
+        uses: im-open/update-deployment-board@v1.4.0
         with:
           github-token: ${{ secrets.BOT_TOKEN}}             # Since a different token is used, the github-login should be set to the corresponding acct
           github-login: 'my-bot'

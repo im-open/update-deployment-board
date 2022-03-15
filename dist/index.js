@@ -17500,7 +17500,8 @@ var require_labels = __commonJS({
       failure: 'D93F0B',
       cancelled: 'DEDEDE',
       skipped: 'DEDEDE',
-      current: 'FBCA04'
+      current: 'FBCA04',
+      default: 'C1B8FF'
     };
     async function listLabelsForRepo(octokit2) {
       let hasMoreLabels = true;
@@ -17670,6 +17671,12 @@ var require_labels = __commonJS({
         await createLabel(octokit2, labels2.currentlyInEnv, colors['current']);
       } else {
         core2.info(`The ${labels2.currentlyInEnv} label exists.`);
+      }
+      if (existingLabelNames.indexOf(labels2.default) === -1) {
+        labels2.defaultExists = false;
+        await createLabel(octokit2, labels2.default, colors['default']);
+      } else {
+        core2.info(`The ${labels2.default} label exists.`);
       }
       core2.info(`Finished checking that the labels exist.`);
       core2.endGroup();
@@ -20600,7 +20607,7 @@ var require_issues = __commonJS({
           repo,
           title: issueToUpdate2.title,
           body,
-          labels: [labels2.currentlyInEnv, labels2.deployStatus]
+          labels: [labels2.currentlyInEnv, labels2.deployStatus, labels2.default]
         });
         core2.info(`The issue was created successfully: ${response.number}`);
         issueToUpdate2.number = response.number;
@@ -20703,8 +20710,10 @@ function setupAction() {
   labels = {
     deployStatus: deployStatus.toLowerCase(),
     currentlyInEnv: `\u{1F680}currently-in-${environment.toLowerCase()}`,
+    default: 'deployment-board',
     deployStatusExists: true,
-    currentlyInEnvExists: true
+    currentlyInEnvExists: true,
+    defaultExists: true
   };
   issueToUpdate = {
     title: '',
@@ -20758,6 +20767,7 @@ async function run() {
     await appendDeploymentDetailsToIssue(ghToken, issueToUpdate, project, actor, labels.deployStatus);
     await removeStatusLabelsFromIssue(octokit, issueToUpdate.labels, issueToUpdate.number, labels.deployStatus);
     await addLabelToIssue(octokit, labels.deployStatus, issueToUpdate.number);
+    await addLabelToIssue(octokit, labels.default, issueToUpdate.number);
     if (workflowFullyRan) {
       await addLabelToIssue(octokit, labels.currentlyInEnv, issueToUpdate.number);
     }

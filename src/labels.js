@@ -9,7 +9,8 @@ const colors = {
   failure: 'D93F0B', //Red
   cancelled: 'DEDEDE', //Gray
   skipped: 'DEDEDE', //Gray
-  current: 'FBCA04' //Yellow
+  current: 'FBCA04', //Yellow
+  default: 'C1B8FF' //Purple
 };
 
 async function listLabelsForRepo(octokit) {
@@ -202,6 +203,13 @@ async function makeSureLabelsForThisActionExist(octokit, labels) {
     await createLabel(octokit, labels.currentlyInEnv, colors['current']);
   } else {
     core.info(`The ${labels.currentlyInEnv} label exists.`);
+  }
+
+  if (existingLabelNames.indexOf(labels.default) === -1) {
+    labels.defaultExists = false;
+    await createLabel(octokit, labels.default, colors['default']);
+  } else {
+    core.info(`The ${labels.default} label exists.`);
   }
   core.info(`Finished checking that the labels exist.`);
   core.endGroup();

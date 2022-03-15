@@ -59,8 +59,10 @@ function setupAction() {
   labels = {
     deployStatus: deployStatus.toLowerCase(), //success, failure, cancelled, skipped
     currentlyInEnv: `🚀currently-in-${environment.toLowerCase()}`,
+    default: 'deployment-board',
     deployStatusExists: true,
-    currentlyInEnvExists: true
+    currentlyInEnvExists: true,
+    defaultExists: true
   };
 
   issueToUpdate = {
@@ -126,6 +128,7 @@ async function run() {
     await appendDeploymentDetailsToIssue(ghToken, issueToUpdate, project, actor, labels.deployStatus);
     await removeStatusLabelsFromIssue(octokit, issueToUpdate.labels, issueToUpdate.number, labels.deployStatus);
     await addLabelToIssue(octokit, labels.deployStatus, issueToUpdate.number);
+    await addLabelToIssue(octokit, labels.default, issueToUpdate.number);
 
     if (workflowFullyRan) {
       await addLabelToIssue(octokit, labels.currentlyInEnv, issueToUpdate.number);
