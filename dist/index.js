@@ -20767,6 +20767,7 @@ async function run() {
     await appendDeploymentDetailsToIssue(ghToken, issueToUpdate, project, actor, labels.deployStatus);
     await removeStatusLabelsFromIssue(octokit, issueToUpdate.labels, issueToUpdate.number, labels.deployStatus);
     await addLabelToIssue(octokit, labels.deployStatus, issueToUpdate.number);
+    await addLabelToIssue(octokit, labels.default, issueToUpdate.number);
     if (workflowFullyRan) {
       await addLabelToIssue(octokit, labels.currentlyInEnv, issueToUpdate.number);
     }
