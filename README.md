@@ -23,7 +23,7 @@ When the action runs it will label the issue with three labels
   2. Deployment Status `success|failure|skipped|cancelled`. 
      - The status matches the possible values for step outcomes and this cannot be changed.
   3. Default Label `deployment-board`.
-     - This label is used to filter out these labels in the Github Issues UI
+     - This label is used to filter out these issues in the Github Issues UI
 
 The issue will contain a list of deployments for the ref which include the environment, a link to the workflow run, the status, date of deployment and the actor who kicked off the workflow.  
 <kbd><img src="./docs/issue-details.png"></img></kbd>
