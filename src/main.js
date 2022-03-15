@@ -59,8 +59,10 @@ function setupAction() {
   labels = {
     deployStatus: deployStatus.toLowerCase(), //success, failure, cancelled, skipped
     currentlyInEnv: `🚀currently-in-${environment.toLowerCase()}`,
+    default: 'deployment-board',
     deployStatusExists: true,
-    currentlyInEnvExists: true
+    currentlyInEnvExists: true,
+    defaultExists: true
   };
 
   issueToUpdate = {

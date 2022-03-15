@@ -127,7 +127,7 @@ async function createAnIssueForThisDeploymentIfItDoesNotExist(octokit, ghLogin, 
       repo,
       title: issueToUpdate.title,
       body,
-      labels: [labels.currentlyInEnv, labels.deployStatus]
+      labels: [labels.currentlyInEnv, labels.deployStatus, labels.default]
     });
     core.info(`The issue was created successfully: ${response.number}`);
 
