@@ -101,7 +101,7 @@ jobs:
   deploy-different-ways:
     runs-on: [ubuntu-20.04]
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - id: deploy-to-qa
         continue-on-error: true  #Setting to true so the deployment board can be updated, even if this fails
