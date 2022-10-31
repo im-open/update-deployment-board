@@ -157,7 +157,6 @@ async function createAnIssueForThisDeploymentIfItDoesNotExist(octokit, ghLogin, 
     .then(() => {
       core.info(`The auto-generated comment was sucessfully added to the issue.`);
       core.endGroup();
-      throw error;
     })
     .catch(error => {
       core.info(`An error occurred adding the auto-generated comment to the issue: ${error.message}.`);

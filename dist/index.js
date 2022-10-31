@@ -899,18 +899,18 @@ var require_tunnel = __commonJS({
         if (res.statusCode !== 200) {
           debug('tunneling socket could not be established, statusCode=%d', res.statusCode);
           socket.destroy();
-          var error2 = new Error('tunneling socket could not be established, statusCode=' + res.statusCode);
-          error2.code = 'ECONNRESET';
-          options.request.emit('error', error2);
+          var error = new Error('tunneling socket could not be established, statusCode=' + res.statusCode);
+          error.code = 'ECONNRESET';
+          options.request.emit('error', error);
           self.removeSocket(placeholder);
           return;
         }
         if (head.length > 0) {
           debug('got illegal response body from proxy');
           socket.destroy();
-          var error2 = new Error('got illegal response body from proxy');
-          error2.code = 'ECONNRESET';
-          options.request.emit('error', error2);
+          var error = new Error('got illegal response body from proxy');
+          error.code = 'ECONNRESET';
+          options.request.emit('error', error);
           self.removeSocket(placeholder);
           return;
         }
@@ -921,9 +921,9 @@ var require_tunnel = __commonJS({
       function onError(cause) {
         connectReq.removeAllListeners();
         debug('tunneling socket could not be established, cause=%s\n', cause.message, cause.stack);
-        var error2 = new Error('tunneling socket could not be established, cause=' + cause.message);
-        error2.code = 'ECONNRESET';
-        options.request.emit('error', error2);
+        var error = new Error('tunneling socket could not be established, cause=' + cause.message);
+        error.code = 'ECONNRESET';
+        options.request.emit('error', error);
         self.removeSocket(placeholder);
       }
     };
@@ -1770,12 +1770,12 @@ var require_oidc_utils = __commonJS({
         var _a;
         return __awaiter(this, void 0, void 0, function* () {
           const httpclient = OidcClient.createHttpClient();
-          const res = yield httpclient.getJson(id_token_url).catch(error2 => {
+          const res = yield httpclient.getJson(id_token_url).catch(error => {
             throw new Error(`Failed to get ID Token. 
  
-        Error Code : ${error2.statusCode}
+        Error Code : ${error.statusCode}
  
-        Error Message: ${error2.result.message}`);
+        Error Message: ${error.result.message}`);
           });
           const id_token = (_a = res.result) === null || _a === void 0 ? void 0 : _a.value;
           if (!id_token) {
@@ -1796,8 +1796,8 @@ var require_oidc_utils = __commonJS({
             const id_token = yield OidcClient.getCall(id_token_url);
             core_1.setSecret(id_token);
             return id_token;
-          } catch (error2) {
-            throw new Error(`Error message: ${error2.message}`);
+          } catch (error) {
+            throw new Error(`Error message: ${error.message}`);
           }
         });
       }
@@ -2217,7 +2217,7 @@ Support boolean input list: \`true | True | TRUE | false | False | FALSE\``);
     exports2.setCommandEcho = setCommandEcho;
     function setFailed(message) {
       process.exitCode = ExitCode.Failure;
-      error2(message);
+      error(message);
     }
     exports2.setFailed = setFailed;
     function isDebug() {
@@ -2228,10 +2228,10 @@ Support boolean input list: \`true | True | TRUE | false | False | FALSE\``);
       command_1.issueCommand('debug', {}, message);
     }
     exports2.debug = debug;
-    function error2(message, properties = {}) {
+    function error(message, properties = {}) {
       command_1.issueCommand('error', utils_1.toCommandProperties(properties), message instanceof Error ? message.toString() : message);
     }
-    exports2.error = error2;
+    exports2.error = error;
     function warning(message, properties = {}) {
       command_1.issueCommand('warning', utils_1.toCommandProperties(properties), message instanceof Error ? message.toString() : message);
     }
@@ -2516,8 +2516,8 @@ var require_add = __commonJS({
         hook = function (method, options) {
           return Promise.resolve()
             .then(method.bind(null, options))
-            .catch(function (error2) {
-              return orig(error2, options);
+            .catch(function (error) {
+              return orig(error, options);
             });
         };
       }
@@ -11418,7 +11418,7 @@ var require_tr46 = __commonJS({
         label = punycode.toUnicode(label);
         processing_option = PROCESSING_OPTIONS.NONTRANSITIONAL;
       }
-      var error2 = false;
+      var error = false;
       if (
         normalize(label) !== label ||
         (label[3] === '-' && label[4] === '-') ||
@@ -11427,7 +11427,7 @@ var require_tr46 = __commonJS({
         label.indexOf('.') !== -1 ||
         label.search(combiningMarksRegex) === 0
       ) {
-        error2 = true;
+        error = true;
       }
       var len = countSymbols(label);
       for (var i = 0; i < len; ++i) {
@@ -11436,13 +11436,13 @@ var require_tr46 = __commonJS({
           (processing === PROCESSING_OPTIONS.TRANSITIONAL && status[1] !== 'valid') ||
           (processing === PROCESSING_OPTIONS.NONTRANSITIONAL && status[1] !== 'valid' && status[1] !== 'deviation')
         ) {
-          error2 = true;
+          error = true;
           break;
         }
       }
       return {
         label,
-        error: error2
+        error
       };
     }
     function processing(domain_name, useSTD3, processing_option) {
@@ -13090,11 +13090,11 @@ var require_lib3 = __commonJS({
       this.timeout = timeout;
       if (body instanceof Stream) {
         body.on('error', function (err) {
-          const error2 =
+          const error =
             err.name === 'AbortError'
               ? err
               : new FetchError(`Invalid response body while trying to fetch ${_this.url}: ${err.message}`, 'system', err);
-          _this[INTERNALS].error = error2;
+          _this[INTERNALS].error = error;
         });
       }
     }
@@ -13855,13 +13855,13 @@ var require_lib3 = __commonJS({
         const signal = request.signal;
         let response = null;
         const abort = function abort2() {
-          let error2 = new AbortError('The user aborted a request.');
-          reject(error2);
+          let error = new AbortError('The user aborted a request.');
+          reject(error);
           if (request.body && request.body instanceof Stream.Readable) {
-            request.body.destroy(error2);
+            request.body.destroy(error);
           }
           if (!response || !response.body) return;
-          response.body.emit('error', error2);
+          response.body.emit('error', error);
         };
         if (signal && signal.aborted) {
           abort();
@@ -14260,7 +14260,7 @@ var require_dist_node5 = __commonJS({
           }
           if (status >= 400) {
             const data = await getResponseData(response);
-            const error2 = new requestError.RequestError(toErrorMessage(data), status, {
+            const error = new requestError.RequestError(toErrorMessage(data), status, {
               response: {
                 url,
                 status,
@@ -14269,7 +14269,7 @@ var require_dist_node5 = __commonJS({
               },
               request: requestOptions
             });
-            throw error2;
+            throw error;
           }
           return getResponseData(response);
         })
@@ -14281,9 +14281,9 @@ var require_dist_node5 = __commonJS({
             data
           };
         })
-        .catch(error2 => {
-          if (error2 instanceof requestError.RequestError) throw error2;
-          throw new requestError.RequestError(error2.message, 500, {
+        .catch(error => {
+          if (error instanceof requestError.RequestError) throw error;
+          throw new requestError.RequestError(error.message, 500, {
             request: requestOptions
           });
         });
@@ -15996,8 +15996,8 @@ var require_dist_node10 = __commonJS({
               return {
                 value: normalizedResponse
               };
-            } catch (error2) {
-              if (error2.status !== 409) throw error2;
+            } catch (error) {
+              if (error.status !== 409) throw error;
               url = '';
               return {
                 value: {
@@ -16687,15 +16687,15 @@ var require_normalizeHeaderName = __commonJS({
 var require_enhanceError = __commonJS({
   'node_modules/axios/lib/core/enhanceError.js'(exports2, module2) {
     'use strict';
-    module2.exports = function enhanceError(error2, config, code, request, response) {
-      error2.config = config;
+    module2.exports = function enhanceError(error, config, code, request, response) {
+      error.config = config;
       if (code) {
-        error2.code = code;
+        error.code = code;
       }
-      error2.request = request;
-      error2.response = response;
-      error2.isAxiosError = true;
-      error2.toJSON = function toJSON() {
+      error.request = request;
+      error.response = response;
+      error.isAxiosError = true;
+      error.toJSON = function toJSON() {
         return {
           message: this.message,
           name: this.name,
@@ -16710,7 +16710,7 @@ var require_enhanceError = __commonJS({
           status: this.response && this.response.status ? this.response.status : null
         };
       };
-      return error2;
+      return error;
     };
   }
 });
@@ -16721,8 +16721,8 @@ var require_createError = __commonJS({
     'use strict';
     var enhanceError = require_enhanceError();
     module2.exports = function createError(message, config, code, request, response) {
-      var error2 = new Error(message);
-      return enhanceError(error2, config, code, request, response);
+      var error = new Error(message);
+      return enhanceError(error, config, code, request, response);
     };
   }
 });
@@ -17092,7 +17092,7 @@ var require_debug = __commonJS({
       if (!debug) {
         try {
           debug = require('debug')('follow-redirects');
-        } catch (error2) {}
+        } catch (error) {}
         if (typeof debug !== 'function') {
           debug = function () {};
         }
@@ -17301,10 +17301,10 @@ var require_follow_redirects = __commonJS({
         var i = 0;
         var self = this;
         var buffers = this._requestBodyBuffers;
-        (function writeNext(error2) {
+        (function writeNext(error) {
           if (request === self._currentRequest) {
-            if (error2) {
-              self.emit('error', error2);
+            if (error) {
+              self.emit('error', error);
             } else if (i < buffers.length) {
               var buffer = buffers[i++];
               if (!request.finished) {
@@ -18179,15 +18179,15 @@ var require_Axios = __commonJS({
         var onRejected = requestInterceptorChain.shift();
         try {
           newConfig = onFulfilled(newConfig);
-        } catch (error2) {
-          onRejected(error2);
+        } catch (error) {
+          onRejected(error);
           break;
         }
       }
       try {
         promise = dispatchRequest(newConfig);
-      } catch (error2) {
-        return Promise.reject(error2);
+      } catch (error) {
+        return Promise.reject(error);
       }
       while (responseInterceptorChain.length) {
         promise = promise.then(responseInterceptorChain.shift(), responseInterceptorChain.shift());
@@ -18436,10 +18436,10 @@ var require_projects = __commonJS({
         core2.info(`	${projectToUpdate.columnName} Column Id: '${projectToUpdate.columnId}'`);
         core2.info(`	${projectToUpdate.columnName} Column Node ID: '${projectToUpdate.columnNodeId}'`);
         core2.endGroup();
-      } catch (error2) {
-        core2.setFailed(`An error occurred getting data for the Project #${projectBoardId}: ${error2.message}`);
+      } catch (error) {
+        core2.setFailed(`An error occurred getting data for the Project #${projectBoardId}: ${error.message}`);
         core2.endGroup();
-        throw error2;
+        throw error;
       }
     }
     async function createProjectCard2(graphqlWithAuth2, issue_number, columnId) {
@@ -18453,10 +18453,10 @@ var require_projects = __commonJS({
         await graphqlWithAuth2(mutation);
         core2.info(`A project card was successfully created.`);
         core2.endGroup();
-      } catch (error2) {
-        core2.setFailed(`An error occurred adding the issue to the project: ${error2.message}`);
+      } catch (error) {
+        core2.setFailed(`An error occurred adding the issue to the project: ${error.message}`);
         core2.endGroup();
-        throw error2;
+        throw error;
       }
     }
     async function moveCardToColumn2(ghToken2, card_Id, columnName, column_Id) {
@@ -18479,8 +18479,8 @@ var require_projects = __commonJS({
           core2.info(`The card was moved to the ${columnName} column.`);
           core2.endGroup();
         })
-        .catch(error2 => {
-          core2.setFailed(`An error making the request to move the card to the ${columnName} column: ${error2.message}`);
+        .catch(error => {
+          core2.setFailed(`An error making the request to move the card to the ${columnName} column: ${error.message}`);
           core2.endGroup();
         });
     }
@@ -18524,8 +18524,8 @@ var require_labels = __commonJS({
             core2.info(`No labels were found for the ${owner}/${repo} repository.`);
           }
         })
-        .catch(error2 => {
-          core2.info(`An error occurred while retrieving the labels for ${owner}/${repo}: ${error2.message}`);
+        .catch(error => {
+          core2.info(`An error occurred while retrieving the labels for ${owner}/${repo}: ${error.message}`);
         });
       return labelsToReturn;
     }
@@ -18541,9 +18541,9 @@ var require_labels = __commonJS({
         .then(() => {
           core2.info(`Successfully created the ${name} label.`);
         })
-        .catch(error2 => {
-          core2.setFailed(`An error occurred while creating the '${name}' label: ${error2.message}`);
-          throw error2;
+        .catch(error => {
+          core2.setFailed(`An error occurred while creating the '${name}' label: ${error.message}`);
+          throw error;
         });
     }
     async function addLabelToIssue2(octokit2, name, issue_number) {
@@ -18559,8 +18559,8 @@ var require_labels = __commonJS({
           core2.info(`Successfully added label '${name}' to issue #${issue_number}...`);
           core2.endGroup();
         })
-        .catch(error2 => {
-          core2.setFailed(`An error occurred while adding the '${name}' label from issue #${issue_number}: ${error2.message}`);
+        .catch(error => {
+          core2.setFailed(`An error occurred while adding the '${name}' label from issue #${issue_number}: ${error.message}`);
           core2.endGroup();
         });
     }
@@ -18577,8 +18577,8 @@ var require_labels = __commonJS({
           core2.info(`Successfully removed label ${labelName} from issue #${issue_number}.`);
           core2.endGroup();
         })
-        .catch(error2 => {
-          core2.setFailed(`An error occurred while removing the '${labelName}' label from issue #${issue_number}: ${error2.message}`);
+        .catch(error => {
+          core2.setFailed(`An error occurred while removing the '${labelName}' label from issue #${issue_number}: ${error.message}`);
           core2.endGroup();
         });
     }
@@ -18599,8 +18599,8 @@ var require_labels = __commonJS({
         if (hasSkippedLabel && !currentStatusIsSkipped) await removeLabelFromIssue2(octokit2, 'skipped', issueNumber);
         core2.info(`Finished removing deployment status labels from issue #${issueNumber}.`);
         core2.endGroup();
-      } catch (error2) {
-        core2.info(`An error occurred removing status labels from issue #${issueNumber}: ${error2.message}`);
+      } catch (error) {
+        core2.info(`An error occurred removing status labels from issue #${issueNumber}: ${error.message}`);
         core2.endGroup();
       }
     }
@@ -18639,8 +18639,8 @@ var require_labels = __commonJS({
           core2.endGroup();
           return issues;
         }
-      } catch (error2) {
-        core2.info(`An error occurred retrieving issues with the '${labelName}' label: ${error2.message}`);
+      } catch (error) {
+        core2.info(`An error occurred retrieving issues with the '${labelName}' label: ${error.message}`);
         core2.info(`You may need to manually remove the ${labelName} from other issues`);
         core2.endGroup();
         return [];
@@ -21564,10 +21564,10 @@ var require_issues = __commonJS({
         }
         core2.info(`A project card was found for '#${issueToUpdate2.number} ${issueToUpdate2.title}': ${issueToUpdate2.projectCardId}`);
         core2.endGroup();
-      } catch (error2) {
-        core2.setFailed(`An error occurred retrieving the issues: ${error2.message}`);
+      } catch (error) {
+        core2.setFailed(`An error occurred retrieving the issues: ${error.message}`);
         core2.endGroup();
-        throw error2;
+        throw error;
       }
     }
     function getDateString() {
@@ -21606,10 +21606,10 @@ var require_issues = __commonJS({
           issueToUpdate2.state = 'OPEN';
           core2.info(`The issue was created successfully: ${response.number}`);
         })
-        .catch(error2 => {
-          core2.setFailed(`An error occurred creating the issue: ${error2.message}`);
+        .catch(error => {
+          core2.setFailed(`An error occurred creating the issue: ${error.message}`);
           core2.endGroup();
-          throw error2;
+          throw error;
         });
       core2.info(`Adding a comment to the issue indicating it was auto-generated by @${ghLogin2}...`);
       await octokit2.rest.issues
@@ -21622,12 +21622,11 @@ var require_issues = __commonJS({
         .then(() => {
           core2.info(`The auto-generated comment was sucessfully added to the issue.`);
           core2.endGroup();
-          throw error;
         })
-        .catch(error2 => {
-          core2.info(`An error occurred adding the auto-generated comment to the issue: ${error2.message}.`);
+        .catch(error => {
+          core2.info(`An error occurred adding the auto-generated comment to the issue: ${error.message}.`);
           core2.endGroup();
-          throw error2;
+          throw error;
         });
     }
     async function appendDeploymentDetailsToIssue2(ghToken2, issueToUpdate2, project2, actor2, deployStatus2) {
@@ -21654,8 +21653,8 @@ var require_issues = __commonJS({
           core2.info(`The deployment details were successfully added to the issue.`);
           core2.endGroup();
         })
-        .catch(error2 => {
-          core2.setFailed(`An error occurred appending the deployment details to the issue: ${error2.message}`);
+        .catch(error => {
+          core2.setFailed(`An error occurred appending the deployment details to the issue: ${error.message}`);
           core2.endGroup();
         });
     }
@@ -21784,7 +21783,7 @@ async function run() {
 try {
   setupAction();
   run();
-} catch (error2) {
+} catch (error) {
   core.setFailed('An error occurred updating the deployment board.');
   return;
 }
