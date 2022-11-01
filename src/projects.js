@@ -69,7 +69,7 @@ async function getProjectData(graphqlWithAuth, projectToUpdate) {
     core.info(`\t${projectToUpdate.columnName} Column Node ID: '${projectToUpdate.columnNodeId}'`);
     core.endGroup();
   } catch (error) {
-    core.setFailed(`An error occurred getting data for the Project #${projectBoardId}: ${error}`);
+    core.setFailed(`An error occurred getting data for the Project #${projectBoardId}: ${error.message}`);
     core.endGroup();
     throw error;
   }
@@ -89,38 +89,39 @@ async function createProjectCard(graphqlWithAuth, issue_number, columnId) {
     core.info(`A project card was successfully created.`);
     core.endGroup();
   } catch (error) {
-    core.setFailed(`An error occurred adding the issue to the project: ${error}`);
+    core.setFailed(`An error occurred adding the issue to the project: ${error.message}`);
     core.endGroup();
     throw error;
   }
 }
 
 async function moveCardToColumn(ghToken, card_Id, columnName, column_Id) {
-  try {
-    core.startGroup(`Moving the project card to the ${columnName} column....`);
+  core.startGroup(`Moving the project card to the ${columnName} column....`);
 
-    //The octokit api doesn't work for this call so use axios to do a direct post instead
-    const request = {
-      column_id: column_Id,
-      position: 'top'
-    };
-    await axios({
-      method: 'POST',
-      url: `https://api.github.com/projects/columns/cards/${card_Id}/moves`,
-      headers: {
-        'content-type': 'application/json',
-        authorization: `token ${ghToken}`,
-        accept: 'application/vnd.github.v3+json'
-      },
-      data: JSON.stringify(request)
+  //The octokit api doesn't work for this call so use axios to do a direct post instead
+  const request = {
+    column_id: column_Id,
+    position: 'top'
+  };
+  await axios({
+    method: 'POST',
+    url: `https://api.github.com/projects/columns/cards/${card_Id}/moves`,
+    headers: {
+      'content-type': 'application/json',
+      authorization: `token ${ghToken}`,
+      accept: 'application/vnd.github.v3+json'
+    },
+    data: JSON.stringify(request)
+  })
+    .then(() => {
+      core.info(`The card was moved to the ${columnName} column.`);
+      core.endGroup();
+    })
+    .catch(error => {
+      //Don't immediately fail by re-throwing error, let the action see what else it can process successfully.
+      core.setFailed(`An error making the request to move the card to the ${columnName} column: ${error.message}`);
+      core.endGroup();
     });
-    core.info(`The card was moved to the ${columnName} column.`);
-    core.endGroup();
-  } catch (error) {
-    //Don't immediately fail by throwing, let it see what else it can finish.
-    core.setFailed(`An error making the request to move the card to the ${columnName} column: ${error}`);
-    core.endGroup();
-  }
 }
 
 module.exports = {

@@ -14,113 +14,96 @@ const colors = {
 };
 
 async function listLabelsForRepo(octokit) {
-  let hasMoreLabels = true;
   let labelsToReturn = [];
-  let page = 1;
-  const maxResultsPerPage = 40;
 
-  try {
-    core.info(`Retrieving the existing labels for this repository...`);
+  core.info(`Retrieving the existing labels for this repository...`);
 
-    while (hasMoreLabels) {
-      const response = await octokit.rest.issues.listLabelsForRepo({
-        owner,
-        repo,
-        per_page: maxResultsPerPage,
-        page: page
-      });
-
-      if (response.status == 200) {
-        if (response.data) {
-          if (response.data.length < maxResultsPerPage) {
-            hasMoreLabels = false;
-          } else {
-            page += 1;
-          }
-
-          for (let index = 0; index < response.data.length; index++) {
-            let label = response.data[index];
-            labelsToReturn.push(label.name.toLowerCase());
-          }
-        } else {
-          core.info('Finished getting labels for the repository.');
+  await octokit
+    .paginate(octokit.rest.issues.listLabelsForRepo, {
+      owner,
+      repo
+    })
+    .then(labels => {
+      if (labels.length > 0) {
+        for (const label of labels) {
+          labelsToReturn.push(label.name.toLowerCase());
         }
       } else {
-        core.setFailed(`An error occurred retrieving page ${page} of labels.`);
+        core.info(`No labels were found for the ${owner}/${repo} repository.`);
       }
-    }
-    if (labelsToReturn.length > 0) {
-      core.info(`The following labels were found in the ${owner}/${repo} repository: ${labelsToReturn.join(', ')}`);
-      return labelsToReturn;
-    }
+    })
+    .catch(error => {
+      core.info(`An error occurred while retrieving the labels for ${owner}/${repo}: ${error.message}`);
+    });
 
-    core.info(`No labels were found for the ${owner}/${repo} repository.`);
-    return [];
-  } catch (error) {
-    core.info(`An error occurred while retrieving the labels for ${owner}/${repo}: ${error}`);
-    return [];
-  }
+  return labelsToReturn;
 }
 
 async function createLabel(octokit, name, color) {
-  try {
-    core.info(`Creating the ${name} label with color ${color}...`);
-    await octokit.rest.issues.createLabel({
+  core.info(`Creating the ${name} label with color ${color}...`);
+  await octokit.rest.issues
+    .createLabel({
       owner,
       repo,
       name,
       color
+    })
+    .then(() => {
+      core.info(`Successfully created the ${name} label.`);
+    })
+    .catch(error => {
+      core.setFailed(`An error occurred while creating the '${name}' label: ${error.message}`);
+      throw error;
     });
-    core.info(`Successfully created the ${name} label.`);
-  } catch (error) {
-    core.setFailed(`An error occurred while creating the '${name}' label: ${error}`);
-    throw error;
-  }
 }
 
 async function addLabelToIssue(octokit, name, issue_number) {
-  try {
-    core.startGroup(`Adding label '${name}' to issue #${issue_number}...`);
-    await octokit.rest.issues.addLabels({
+  core.startGroup(`Adding label '${name}' to issue #${issue_number}...`);
+  await octokit.rest.issues
+    .addLabels({
       owner,
       repo,
       issue_number,
       labels: [name]
+    })
+    .then(() => {
+      core.info(`Successfully added label '${name}' to issue #${issue_number}...`);
+      core.endGroup();
+    })
+    .catch(error => {
+      //Don't immediately fail by re-throwing error, let it see what else the action can successfully process.
+      core.setFailed(`An error occurred while adding the '${name}' label from issue #${issue_number}: ${error.message}`);
+      core.endGroup();
     });
-    core.info(`Successfully added label '${name}' to issue #${issue_number}...`);
-    core.endGroup();
-  } catch (error) {
-    //Don't immediately fail by throwing, let it see what else it can finish.
-    core.setFailed(`An error occurred while adding the '${name}' label from issue #${issue_number}: ${error}`);
-    core.endGroup();
-  }
 }
 
 async function removeLabelFromIssue(octokit, labelName, issue_number) {
-  try {
-    core.startGroup(`Removing label ${labelName} from issue #${issue_number}...`);
-    await octokit.rest.issues.removeLabel({
+  core.startGroup(`Removing label ${labelName} from issue #${issue_number}...`);
+  await octokit.rest.issues
+    .removeLabel({
       owner,
       repo,
       issue_number,
       name: labelName
+    })
+    .then(() => {
+      core.info(`Successfully removed label ${labelName} from issue #${issue_number}.`);
+      core.endGroup();
+    })
+    .catch(error => {
+      //Don't immediately fail by re-throwing error, let it see what else the action can successfully process.
+      core.setFailed(`An error occurred while removing the '${labelName}' label from issue #${issue_number}: ${error.message}`);
+      core.endGroup();
     });
-    core.info(`Successfully removed label ${labelName} from issue #${issue_number}.`);
-    core.endGroup();
-  } catch (error) {
-    //Don't immediately fail by throwing, let it see what else it can finish.
-    core.setFailed(`An error occurred while removing the '${labelName}' label from issue #${issue_number}: ${error}`);
-    core.endGroup();
-  }
 }
 
 async function removeStatusLabelsFromIssue(octokit, existingLabels, issueNumber, deployStatus) {
   try {
     core.startGroup(`Removing deployment status labels from issue #${issueNumber} if it has them.`);
-    const hasSuccessLabel = existingLabels.indexOf('success') > -1;
-    const hasFailureLabel = existingLabels.indexOf('failure') > -1;
-    const hasCancelledLabel = existingLabels.indexOf('cancelled') > -1;
-    const hasSkippedLabel = existingLabels.indexOf('skipped') > -1;
+    const hasSuccessLabel = existingLabels.includes('success');
+    const hasFailureLabel = existingLabels.includes('failure');
+    const hasCancelledLabel = existingLabels.includes('cancelled');
+    const hasSkippedLabel = existingLabels.includes('skipped');
 
     const currentStatusIsSuccess = deployStatus === 'success';
     const currentStatusIsFailure = deployStatus === 'failure';
@@ -135,7 +118,7 @@ async function removeStatusLabelsFromIssue(octokit, existingLabels, issueNumber,
     core.endGroup();
   } catch (error) {
     //Don't immediately fail by throwing, let it see what else it can finish.
-    core.info(`An error occurred removing status labels from issue #${issueNumber}: ${error}`);
+    core.info(`An error occurred removing status labels from issue #${issueNumber}: ${error.message}`);
     core.endGroup();
   }
 }
@@ -167,7 +150,7 @@ async function findIssuesWithLabel(graphqlWithAuth, labelName, deployableType) {
 
     if (deployableType && deployableType.length > 0) {
       const issues = response.repository.issues.edges
-        .filter(ri => ri.node.title.toLowerCase().indexOf(deployableType.toLowerCase()) > -1)
+        .filter(ri => ri.node.title.toLowerCase().includes(deployableType.toLowerCase()))
         .map(ri => ri.node.number);
       core.info(`The following issues had label '${labelName} and deployable type: ${deployableType}': ${issues}`);
       core.endGroup();
@@ -179,7 +162,7 @@ async function findIssuesWithLabel(graphqlWithAuth, labelName, deployableType) {
       return issues;
     }
   } catch (error) {
-    core.info(`An error occurred retrieving issues with the '${labelName}' label: ${error}`);
+    core.info(`An error occurred retrieving issues with the '${labelName}' label: ${error.message}`);
     core.info(`You may need to manually remove the ${labelName} from other issues`);
     core.endGroup();
     return [];
