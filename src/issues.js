@@ -13,7 +13,7 @@ async function findTheIssueForThisDeploymentByTitle(graphqlWithAuth, ghLogin, is
     const query = `
     query {
       repository(owner: "${owner}", name: "${repo}") {
-        issues(last: 100, orderBy: {field: UPDATED_AT direction: DESC} filterBy: {mentioned: "${ghLogin}" states: [OPEN]}) {
+        issues(last: 100, orderBy: {field: UPDATED_AT direction: DESC} filterBy: {createdBy: "${ghLogin}" states: [OPEN]}) {
           edges {
             node {
               title

@@ -21495,7 +21495,7 @@ var require_issues = __commonJS({
         const query = `
     query {
       repository(owner: "${owner}", name: "${repo}") {
-        issues(last: 100, orderBy: {field: UPDATED_AT direction: DESC} filterBy: {mentioned: "${ghLogin2}" states: [OPEN]}) {
+        issues(last: 100, orderBy: {field: UPDATED_AT direction: DESC} filterBy: {createdBy: "${ghLogin2}" states: [OPEN]}) {
           edges {
             node {
               title
@@ -21683,7 +21683,7 @@ var deployStatus = core.getInput('deploy-status', requiredArgOptions);
 var ref = core.getInput('ref', requiredArgOptions);
 var refType = core.getInput('ref-type');
 var deployableType = core.getInput('deployable-type');
-var ghLogin = core.getInput('github-login') || 'github-actions';
+var ghLogin = core.getInput('github-login') || 'github-actions[bot]';
 var ghToken = core.getInput('github-token', requiredArgOptions);
 var octokit = github.getOctokit(ghToken);
 var graphqlWithAuth = graphql.defaults({

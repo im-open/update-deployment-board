@@ -29,7 +29,7 @@ const ref = core.getInput('ref', requiredArgOptions);
 let refType = core.getInput('ref-type');
 const deployableType = core.getInput('deployable-type');
 
-const ghLogin = core.getInput('github-login') || 'github-actions';
+const ghLogin = core.getInput('github-login') || 'github-actions[bot]';
 const ghToken = core.getInput('github-token', requiredArgOptions);
 
 const octokit = github.getOctokit(ghToken);
