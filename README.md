@@ -112,7 +112,7 @@ jobs:
       - name: Update deployment board with Defaults
         id: defaults
         continue-on-error: true                             # Setting to true so the job doesn't fail if updating the board fails.
-        uses: im-open/update-deployment-board@v1.5.4.       # You may also reference just the major or major.minor version
+        uses: im-open/update-deployment-board@v1.5.4        # You may also reference just the major or major.minor version
         with:
           github-token: ${{ secrets.GITHUB_TOKEN}}          # If a different token is used, update github-login with the corresponding account
           environment: 'QA'
