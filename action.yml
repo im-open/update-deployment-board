@@ -1,6 +1,5 @@
-name: 'Update Deployment Board'
-
-description: 'Adds deployment Issues to an Automated Deployment Project Board for visual tracking of what has been deployed to each environment.'
+name: Update Deployment Board
+description: Adds deployment Issues to an Automated Deployment Project Board for visual tracking of what has been deployed to each environment.
 
 inputs:
   github-token:
