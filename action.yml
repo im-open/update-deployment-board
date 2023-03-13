@@ -8,7 +8,6 @@ inputs:
   github-login:
     description: 'The login associated with the github-token.  Defaults to github-actions'
     required: true
-    default: 'github-actions'
   environment:
     description: 'The environment the branch, tag or SHA was deployed to'
     required: true
