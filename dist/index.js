@@ -18437,7 +18437,7 @@ var require_projects = __commonJS({
         core2.info(`	${projectToUpdate.columnName} Column Node ID: '${projectToUpdate.columnNodeId}'`);
         core2.endGroup();
       } catch (error) {
-        core2.setFailed(`An error occurred getting data for the Project #${projectBoardId}: ${error.message}`);
+        core2.setFailed(`An error occurred getting data for the Project #${projectToUpdate.number}: ${error.message}`);
         core2.endGroup();
         throw error;
       }
@@ -21489,7 +21489,7 @@ var require_issues = __commonJS({
     var axios = require_axios2();
     var owner = github2.context.repo.owner;
     var repo = github2.context.repo.repo;
-    async function findTheIssueForThisDeploymentByTitle2(graphqlWithAuth2, ghLogin2, issueToUpdate2, projectBoardId2) {
+    async function findTheIssueForThisDeploymentByTitle2(graphqlWithAuth2, ghLogin2, issueToUpdate2, projectBoardId) {
       try {
         core2.startGroup(`Retrieving the issue by title: '${issueToUpdate2.title}'...`);
         const query = `
@@ -21547,17 +21547,17 @@ var require_issues = __commonJS({
           return;
         }
         let existingIssue = issuesOnAnyProjectBoard.find(i =>
-          i.node.projectCards.edges.find(pc => pc.node.project && pc.node.project.databaseId == projectBoardId2)
+          i.node.projectCards.edges.find(pc => pc.node.project && pc.node.project.databaseId == projectBoardId)
         );
         if (!existingIssue) {
-          core2.info(`An issue with the title '${issueToUpdate2.title}' and on project board ${projectBoardId2} was not found.`);
+          core2.info(`An issue with the title '${issueToUpdate2.title}' and on project board ${projectBoardId} was not found.`);
           core2.endGroup();
           return;
         }
         issueToUpdate2.number = existingIssue.node.number;
         issueToUpdate2.body = existingIssue.node.body;
         issueToUpdate2.state = existingIssue.node.state;
-        const projectCard = existingIssue.node.projectCards.edges.find(pc => pc.node.project && pc.node.project.databaseId == projectBoardId2);
+        const projectCard = existingIssue.node.projectCards.edges.find(pc => pc.node.project && pc.node.project.databaseId == projectBoardId);
         issueToUpdate2.projectCardId = projectCard.node.databaseId;
         if (existingIssue.node.labels && existingIssue.node.labels.edges && existingIssue.node.labels.edges.length > 0) {
           issueToUpdate2.labels = existingIssue.node.labels.edges.map(l => l.node.name);
