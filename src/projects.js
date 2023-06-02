@@ -69,7 +69,7 @@ async function getProjectData(graphqlWithAuth, projectToUpdate) {
     core.info(`\t${projectToUpdate.columnName} Column Node ID: '${projectToUpdate.columnNodeId}'`);
     core.endGroup();
   } catch (error) {
-    core.setFailed(`An error occurred getting data for the Project #${projectBoardId}: ${error.message}`);
+    core.setFailed(`An error occurred getting data for the Project #${projectToUpdate.number}: ${error.message}`);
     core.endGroup();
     throw error;
   }
