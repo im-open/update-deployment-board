@@ -2,25 +2,29 @@
 
 This action creates a visual representation of deployments on a Project board in your GitHub repository.  When this action is included in a workflow that does a deployment it will generate or update an existing issue and include it on the specified project board.  
 
-## Index
+## Index <!-- omit in toc -->
 
-- [Project Board](#project-board)
-- [Action Conventions](#action-conventions)
-- [Inputs](#inputs)
-- [Example](#example)
-- [Contributing](#contributing)
-  - [Recompiling](#recompiling)
-  - [Incrementing the Version](#incrementing-the-version)
-- [Code of Conduct](#code-of-conduct)
-- [License](#license)
+- [update-deployment-board](#update-deployment-board)
+  - [Project Board](#project-board)
+  - [Action Conventions](#action-conventions)
+  - [Inputs](#inputs)
+  - [Usage Examples](#usage-examples)
+  - [Contributing](#contributing)
+    - [Incrementing the Version](#incrementing-the-version)
+    - [Source Code Changes](#source-code-changes)
+    - [Recompiling Manually](#recompiling-manually)
+    - [Updating the README.md](#updating-the-readmemd)
+  - [Code of Conduct](#code-of-conduct)
+  - [License](#license)
   
 <kbd><img src="./docs/project-board.png"></img></kbd>
 
 When the action runs it will label the issue with three labels
-  1. `🚀currently-in-<dev|qa|stage|prod|other-provided-env>` 
+
+  1. `🚀currently-in-<dev|qa|stage|prod|other-provided-env>`
      - This label makes it visually easy to see which branch, tag or SHA was most recently deployed to a specific environment and it is meant to stay with the card representing code that is currently deployed to that environment.  
      - In the screenshot above, the issue for `Tag Deploy: v2.1` has the labels for `🚀currently-in-qa` and `🚀currently-in-stage` because that code is deployed to both environments.  The label will stay on a card even if it moves to another column until a different branch, tag or SHA is deployed to that environment.
-  2. Deployment Status `success|failure|skipped|cancelled`. 
+  2. Deployment Status `success|failure|skipped|cancelled`.
      - The status matches the possible values for step outcomes and this cannot be changed.
   3. Default Label `deployment-board`.
      - This label is used to filter out these issues in the Github Issues UI
@@ -28,9 +32,10 @@ When the action runs it will label the issue with three labels
 The issue will contain a list of deployments for the ref which include the environment, a link to the workflow run, the status, date of deployment and the actor who kicked off the workflow.  
 <kbd><img src="./docs/issue-details.png"></img></kbd>
 
-
 ## Project Board
+
 Before using this action, a Project board must be set up.
+
 - The board will need one column per environment and the name should match the environments you will provide with the action.
   - If the columns don't exist or don't match the environment name used with the action, it will fail.
 - The board on this repository can be cloned by opening [the board], opening the `≡ Menu`, clicking on the `...` then selecting `Copy`.
@@ -43,6 +48,7 @@ If the repository has multiple deployable artifacts, like a database and app ser
 Some repositories that contain multiple deployable artifacts may need to customize the behavior of the action.  For repos where one release tag is created but the deployments for each item happen separately there is a `deployable-type` argument.  This allows you to specify the type (*like MFE, API, SVC, BFF, DB, etc*) and separate issues are created for each deployable on the project board.  This can make tracking of separate deployable artifacts in the same repository easier.
 
 ## Action Conventions
+
 - This action can be used in conjunction with [cleanup-deployment-board] so the project board only shows the most current items.
 - The issues and cards on the Automated Deployment board are intended to be handled by this action and the [cleanup-deployment-board] action only.  Modifying any of the issues or cards that back the project board may result in unexpected results.
   - The cleanup action relies on modified dates to determine which cards should be kept.  If issues are manually modified the cleanup might close unexpected items.
@@ -54,11 +60,11 @@ Some repositories that contain multiple deployable artifacts may need to customi
 - Using `continue-on-error: 'true'` may be helpful for this step since you might not want the job or workflow to fail if the board did not update correctly.
 - When the `ref-type` argument is not provided the action will do some regex pattern matching to try to find the right ref type.  It will check in this order:
   - SHA: `/\b([0-9a-f]{40})\b/g`
-     - Matches - a full SHA from your git commit
+    - Matches - a full SHA from your git commit
   - Tag: `/^(v?\d+(?:\.\d+)*.*)$/g`
-     - Matches:
-       - v1, v1.0, v1.0.0, v1.0.0-test1
-       - 2, 2.0, 2.0.0, 2.0.0-test2
+    - Matches:
+      - v1, v1.0, v1.0.0, v1.0.0-test1
+      - 2, 2.0, 2.0.0, 2.0.0-test2
   - Branch: Default when the SHA or Tag pattern do not match
 - Workflows with `success` or `failure` deploy status
   - An issue will be created in the appropriate environment column on the project board if one does not exist.
@@ -68,24 +74,22 @@ Some repositories that contain multiple deployable artifacts may need to customi
   - An issue will be created in the appropriate environment column on the project board if one does not exist.
   - If there is an existing issue representing this deploy, it will not be moved from the column it is currently in.
   - The `🚀currently-in-<env>` label will remain on the issue that had it before the workflow ran (if there is one).
-    
 
 ## Inputs
+
 | Parameter         | Is Required | Description                                                                                                                                                                                                                                                                                                                                                                                          |
-| ----------------- | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+|-------------------|-------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `github-token`    | true        | A token with permissions to create and update issues.                                                                                                                                                                                                                                                                                                                                                |
 | `github-login`    | false       | The login associated with the github-token.  Defaults to github-actions but should be updated if a different account owns the token provided.                                                                                                                                                                                                                                                        |
 | `environment`     | true        | The environment the branch, tag or SHA was deployed to.                                                                                                                                                                                                                                                                                                                                              |
-| `board-number`    | true        | The number of the project board that will be updated.  Can be found by using the number in the board's url. <br/><br/> For example the number would be 1 for:<br/>https://github.com/im-open/update-deployment-board/projects/1.                                                                                                                                                                     |
+| `board-number`    | true        | The number of the project board that will be updated.  Can be found by using the number in the board's url. <br/><br/> For example the number would be 1 for:<br/><https://github.com/im-open/update-deployment-board/projects/1>.                                                                                                                                                                   |
 | `ref`             | true        | The branch, tag or SHA that was deployed.                                                                                                                                                                                                                                                                                                                                                            |
 | `ref-type`        | false       | The type of ref that was deployed.  If not provided the action will use some regex patterns to try to identify the type.  <br/><br/>Possible Values: *branch, tag, sha*                                                                                                                                                                                                                              |
 | `deployable-type` | false       | String indicating the type of deployable item (*like API, BFF, MFE, SVC, DB, etc*).<br/><br/>In repositories with multiple deployable artifacts that are deployed separately but use the same release number this arg is the mechanism for creating separate issues to track the deployment of each separate type.<br/><br/>  When provided, this will be added to the beginning of the issue title. |
 | `deploy-status`   | true        | The status of the deployment.  <br/><br/>Possible Values: *success, failure, cancelled, skipped*                                                                                                                                                                                                                                                                                                     |
 | `timezone`        | false       | IANA time zone name (e.g. America/Denver) to display dates in.  If time zone is not provided, dates will be shown in UTC                                                                                                                                                                                                                                                                             |
 
-
-
-## Example
+## Usage Examples
 
 ```yml
 name: Manually Deploy to QA
@@ -141,57 +145,63 @@ jobs:
 
 ## Contributing
 
-When creating new PRs please ensure:
+When creating PRs, please review the following guidelines:
 
-1. For major or minor changes, at least one of the commit messages contains the appropriate `+semver:` keywords listed under [Incrementing the Version](#incrementing-the-version).
-1. The action code does not contain sensitive information.
-
-When a pull request is created and there are changes to code-specific files and folders, the build workflow will run and it will recompile the action and push a commit to the branch if the PR author has not done so. The usage examples in the README.md will also be updated with the next version if they have not been updated manually. The following files and folders contain action code and will trigger the automatic updates:
-
-- action.yml
-- package.json
-- package-lock.json
-- src/\*\*
-- dist/\*\*
-
-There may be some instances where the bot does not have permission to push changes back to the branch though so these steps should be done manually for those branches. See [Recompiling Manually](#recompiling-manually) and [Incrementing the Version](#incrementing-the-version) for more details.
-
-### Recompiling Manually
-
-If changes are made to the action's code in this repository, or its dependencies, the action can be re-compiled by running the following command:
-
-```sh
-# Installs dependencies and bundles the code
-npm run build
-
-# Bundle the code (if dependencies are already installed)
-npm run bundle
-```
-
-These commands utilize [esbuild](https://esbuild.github.io/getting-started/#bundling-for-node) to bundle the action and
-its dependencies into a single file located in the `dist` folder.
+- [ ] The action code does not contain sensitive information.
+- [ ] At least one of the commit messages contains the appropriate `+semver:` keywords listed under [Incrementing the Version] for major and minor increments.
+- [ ] The action has been recompiled.  See [Recompiling Manually] for details.
+- [ ] The README.md has been updated with the latest version of the action.  See [Updating the README.md] for details.
 
 ### Incrementing the Version
 
-Both the build and PR merge workflows will use the strategies below to determine what the next version will be.  If the build workflow was not able to automatically update the README.md action examples with the next version, the README.md should be updated manually as part of the PR using that calculated version.
+This repo uses [git-version-lite] in its workflows to examine commit messages to determine whether to perform a major, minor or patch increment on merge if [source code] changes have been made.  The following table provides the fragment that should be included in a commit message to active different increment strategies.
 
-This action uses [git-version-lite] to examine commit messages to determine whether to perform a major, minor or patch increment on merge.  The following table provides the fragment that should be included in a commit message to active different increment strategies.
 | Increment Type | Commit Message Fragment                     |
-| -------------- | ------------------------------------------- |
+|----------------|---------------------------------------------|
 | major          | +semver:breaking                            |
 | major          | +semver:major                               |
 | minor          | +semver:feature                             |
 | minor          | +semver:minor                               |
 | patch          | *default increment type, no comment needed* |
 
+### Source Code Changes
+
+The files and directories that are considered source code are listed in the `files-with-code` and `dirs-with-code` arguments in both the [build-and-review-pr] and [increment-version-on-merge] workflows.  
+
+If a PR contains source code changes, the README.md should be updated with the latest action version and the action should be recompiled.  The [build-and-review-pr] workflow will ensure these steps are performed when they are required.  The workflow will provide instructions for completing these steps if the PR Author does not initially complete them.
+
+If a PR consists solely of non-source code changes like changes to the `README.md` or workflows under `./.github/workflows`, version updates and recompiles do not need to be performed.
+
+### Recompiling Manually
+
+This command utilizes [esbuild] to bundle the action and its dependencies into a single file located in the `dist` folder.  If changes are made to the action's [source code], the action must be recompiled by running the following command:
+
+```sh
+# Installs dependencies and bundles the code
+npm run build
+```
+
+### Updating the README.md
+
+If changes are made to the action's [source code], the [usage examples] section of this file should be updated with the next version of the action.  Each instance of this action should be updated.  This helps users know what the latest tag is without having to navigate to the Tags page of the repository.  See [Incrementing the Version] for details on how to determine what the next version will be or consult the first workflow run for the PR which will also calculate the next version.
+
 ## Code of Conduct
 
-This project has adopted the [im-open's Code of Conduct](https://github.com/im-open/.github/blob/master/CODE_OF_CONDUCT.md).
+This project has adopted the [im-open's Code of Conduct](https://github.com/im-open/.github/blob/main/CODE_OF_CONDUCT.md).
 
 ## License
 
-Copyright &copy; 2021, Extend Health, LLC. Code released under the [MIT license](LICENSE).
+Copyright &copy; 2023, Extend Health, LLC. Code released under the [MIT license](LICENSE).
 
+<!-- Links -->
+[Incrementing the Version]: #incrementing-the-version
+[Recompiling Manually]: #recompiling-manually
+[Updating the README.md]: #updating-the-readmemd
+[source code]: #source-code-changes
+[usage examples]: #usage-examples
+[build-and-review-pr]: ./.github/workflows/build-and-review-pr.yml
+[increment-version-on-merge]: ./.github/workflows/increment-version-on-merge.yml
+[esbuild]: https://esbuild.github.io/getting-started/#bundling-for-node
 [git-version-lite]: https://github.com/im-open/git-version-lite
 [the board]: https://github.com/im-open/update-deployment-board/projects/1
 [cleanup-deployment-board]: https://github.com/im-open/cleanup-deployment-board
