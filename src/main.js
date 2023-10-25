@@ -25,6 +25,7 @@ const requiredArgOptions = {
 const environment = core.getInput('environment', requiredArgOptions);
 const boardNumber = core.getInput('board-number', requiredArgOptions);
 const deployStatus = core.getInput('deploy-status', requiredArgOptions);
+const deployLabel = core.getInput('deploy-label');
 const ref = core.getInput('ref', requiredArgOptions);
 let refType = core.getInput('ref-type');
 const deployableType = core.getInput('deployable-type');
@@ -60,9 +61,11 @@ function setupAction() {
     deployStatus: deployStatus.toLowerCase(), //success, failure, cancelled, skipped
     currentlyInEnv: `🚀currently-in-${environment.toLowerCase()}`,
     default: 'deployment-board',
+    deployLabel: deployLabel ? deployLabel.toLowerCase() : null,
     deployStatusExists: true,
     currentlyInEnvExists: true,
-    defaultExists: true
+    defaultExists: true,
+    deployLabelExists: deployLabel ? true : false
   };
 
   issueToUpdate = {
@@ -124,6 +127,12 @@ async function run() {
 
   if (issueToUpdate.number === 0) {
     await createAnIssueForThisDeploymentIfItDoesNotExist(octokit, ghLogin, issueToUpdate, labels, project, actor);
+    if (labels.deployLabel != null) {
+      await addLabelToIssue(octokit, labels.deployLabel, issueToUpdate.number);
+      if (labels.deployLabel === 'deleted' || labels.deployLabel === 'destroyed') {
+        await removeLabelFromIssue(octokit, labels.currentlyInEnv, issueToUpdate.number);
+      }
+    }
   } else {
     await appendDeploymentDetailsToIssue(ghToken, issueToUpdate, project, actor, labels.deployStatus);
     await removeStatusLabelsFromIssue(octokit, issueToUpdate.labels, issueToUpdate.number, labels.deployStatus);
@@ -132,6 +141,13 @@ async function run() {
 
     if (workflowFullyRan) {
       await addLabelToIssue(octokit, labels.currentlyInEnv, issueToUpdate.number);
+    }
+
+    if (labels.deployLabel != null) {
+      await addLabelToIssue(octokit, labels.deployLabel, issueToUpdate.number);
+      if (labels.deployLabel === 'deleted' || labels.deployLabel === 'destroyed') {
+        await removeLabelFromIssue(octokit, labels.currentlyInEnv, issueToUpdate.number);
+      }
     }
   }
 

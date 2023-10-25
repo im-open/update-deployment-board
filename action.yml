@@ -26,6 +26,9 @@ inputs:
   deploy-status:
     description: 'The status of the deployment [success|failure|cancelled|skipped]'
     required: true
+  deploy-label:
+    description: 'The optional label of the deployment [deleted|destroyed|<your-custom-label>]'
+    required: false
   timezone:
     description: 'IANA time zone name (e.g. America/Denver) to display dates in.  If timezone is not provided, dates will be shown in UTC'
     required: false

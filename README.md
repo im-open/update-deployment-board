@@ -28,6 +28,9 @@ When the action runs it will label the issue with three labels
      - The status matches the possible values for step outcomes and this cannot be changed.
   3. Default Label `deployment-board`.
      - This label is used to filter out these issues in the Github Issues UI
+  4. Deploy Label (Optional) `deleted|destroyed|your-custom-label`
+     - The labels `deleted|destroyed` will be the color red, all other labels will be grey.
+     - This label gives the option of adding a custom label to a deploy issue. The primary use case is marking an app service slot for deletion or terraform destroy on an environment
 
 The issue will contain a list of deployments for the ref which include the environment, a link to the workflow run, the status, date of deployment and the actor who kicked off the workflow.  
 <kbd><img src="./docs/issue-details.png"></img></kbd>
@@ -87,6 +90,7 @@ Some repositories that contain multiple deployable artifacts may need to customi
 | `ref-type`        | false       | The type of ref that was deployed.  If not provided the action will use some regex patterns to try to identify the type.  <br/><br/>Possible Values: *branch, tag, sha*                                                                                                                                                                                                                              |
 | `deployable-type` | false       | String indicating the type of deployable item (*like API, BFF, MFE, SVC, DB, etc*).<br/><br/>In repositories with multiple deployable artifacts that are deployed separately but use the same release number this arg is the mechanism for creating separate issues to track the deployment of each separate type.<br/><br/>  When provided, this will be added to the beginning of the issue title. |
 | `deploy-status`   | true        | The status of the deployment.  <br/><br/>Possible Values: *success, failure, cancelled, skipped*                                                                                                                                                                                                                                                                                                     |
+| `deploy-label`   | false        | The optional label of the deployment <br/><br/>Possible Values: *deleted, destroyed, your-custom-label*      |
 | `timezone`        | false       | IANA time zone name (e.g. America/Denver) to display dates in.  If time zone is not provided, dates will be shown in UTC                                                                                                                                                                                                                                                                             |
 
 ## Usage Examples
@@ -116,7 +120,7 @@ jobs:
       - name: Update deployment board with Defaults
         id: defaults
         continue-on-error: true                             # Setting to true so the job doesn't fail if updating the board fails.
-        uses: im-open/update-deployment-board@v1.5.6        # You may also reference just the major or major.minor version
+        uses: im-open/update-deployment-board@v1.6.0        # You may also reference just the major or major.minor version
         with:
           github-token: ${{ secrets.GITHUB_TOKEN}}          # If a different token is used, update github-login with the corresponding account
           environment: 'QA'
@@ -127,7 +131,7 @@ jobs:
       - name: Update deployment board with all values provided
         id: provided
         continue-on-error: true                             # Setting to true so the job doesn't fail if updating the board fails.
-        uses: im-open/update-deployment-board@v1.5.6
+        uses: im-open/update-deployment-board@v1.6.0
         with:
           github-token: ${{ secrets.BOT_TOKEN}}             # Since a different token is used, the github-login should be set to the corresponding acct
           github-login: 'my-bot'
@@ -136,6 +140,7 @@ jobs:
           ref: 'feature-branch-16'
           ref-type: 'branch' 
           deploy-status: ${{ steps.deploy-to-qa.outcome }}  # outcome is the result of the step before continue-on-error is applied
+          deploy-label: 'deleted' # Custom label to show status for slot deletion and terraform destroy deployments
           timezone: 'america/denver'
       
       - name: Now Fail the job if the deploy step failed 
