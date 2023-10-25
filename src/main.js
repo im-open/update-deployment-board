@@ -148,6 +148,21 @@ async function run() {
       if (labels.deployLabel === 'deleted' || labels.deployLabel === 'destroyed') {
         await removeLabelFromIssue(octokit, labels.currentlyInEnv, issueToUpdate.number);
       }
+    } else {
+      const issuesWithDeleteLabel = await findIssuesWithLabel(graphqlWithAuth, 'deleted', issueToUpdate.deployableType);
+      if (issuesWithDeleteLabel) {
+        for (let index = 0; index < issuesWithDeleteLabel.length; index++) {
+          const issueNumber = issuesWithDeleteLabel[index];
+          await removeLabelFromIssue(octokit, 'deleted', issueNumber);
+        }
+      }
+      const issuesWithDestroyLabel = await findIssuesWithLabel(graphqlWithAuth, 'destroyed', issueToUpdate.deployableType);
+      if (issuesWithDestroyLabel) {
+        for (let index = 0; index < issuesWithDestroyLabel.length; index++) {
+          const issueNumber = issuesWithDestroyLabel[index];
+          await removeLabelFromIssue(octokit, 'destroyed', issueNumber);
+        }
+      }
     }
   }
 
