@@ -10,7 +10,10 @@ const colors = {
   cancelled: 'DEDEDE', //Gray
   skipped: 'DEDEDE', //Gray
   current: 'FBCA04', //Yellow
-  default: 'C1B8FF' //Purple
+  default: 'C1B8FF', //Purple
+  deleted: 'D93F0B', //Red
+  destroyed: 'D93F0B', //Red
+  custom: 'DEDEDE' //Gray
 };
 
 async function listLabelsForRepo(octokit) {
@@ -186,6 +189,18 @@ async function makeSureLabelsForThisActionExist(octokit, labels) {
     await createLabel(octokit, labels.currentlyInEnv, colors['current']);
   } else {
     core.info(`The ${labels.currentlyInEnv} label exists.`);
+  }
+
+  if (existingLabelNames.indexOf(labels.deployLabel) === -1) {
+    if (labels.deployLabel != null) {
+      labels.deployLabelExists = false;
+      const color = colors[labels.deployLabel] || colors['custom'];
+      await createLabel(octokit, labels.deployLabel, color);
+    } else {
+      core.info('No Deploy Label Specified.');
+    }
+  } else {
+    core.info(`The ${labels.deployLabel} label exists.`);
   }
 
   if (existingLabelNames.indexOf(labels.default) === -1) {

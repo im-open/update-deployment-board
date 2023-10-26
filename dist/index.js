@@ -18505,7 +18505,10 @@ var require_labels = __commonJS({
       cancelled: 'DEDEDE',
       skipped: 'DEDEDE',
       current: 'FBCA04',
-      default: 'C1B8FF'
+      default: 'C1B8FF',
+      deleted: 'D93F0B',
+      destroyed: 'D93F0B',
+      custom: 'DEDEDE'
     };
     async function listLabelsForRepo(octokit2) {
       let labelsToReturn = [];
@@ -18660,6 +18663,17 @@ var require_labels = __commonJS({
         await createLabel(octokit2, labels2.currentlyInEnv, colors['current']);
       } else {
         core2.info(`The ${labels2.currentlyInEnv} label exists.`);
+      }
+      if (existingLabelNames.indexOf(labels2.deployLabel) === -1) {
+        if (labels2.deployLabel != null) {
+          labels2.deployLabelExists = false;
+          const color = colors[labels2.deployLabel] || colors['custom'];
+          await createLabel(octokit2, labels2.deployLabel, color);
+        } else {
+          core2.info('No Deploy Label Specified.');
+        }
+      } else {
+        core2.info(`The ${labels2.deployLabel} label exists.`);
       }
       if (existingLabelNames.indexOf(labels2.default) === -1) {
         labels2.defaultExists = false;
@@ -21680,6 +21694,7 @@ var requiredArgOptions = {
 var environment = core.getInput('environment', requiredArgOptions);
 var boardNumber = core.getInput('board-number', requiredArgOptions);
 var deployStatus = core.getInput('deploy-status', requiredArgOptions);
+var deployLabel = core.getInput('deploy-label');
 var ref = core.getInput('ref', requiredArgOptions);
 var refType = core.getInput('ref-type');
 var deployableType = core.getInput('deployable-type');
@@ -21712,9 +21727,11 @@ function setupAction() {
     deployStatus: deployStatus.toLowerCase(),
     currentlyInEnv: `\u{1F680}currently-in-${environment.toLowerCase()}`,
     default: 'deployment-board',
+    deployLabel: deployLabel ? deployLabel.toLowerCase() : null,
     deployStatusExists: true,
     currentlyInEnvExists: true,
-    defaultExists: true
+    defaultExists: true,
+    deployLabelExists: deployLabel ? true : false
   };
   issueToUpdate = {
     title: '',
@@ -21764,6 +21781,12 @@ async function run() {
   }
   if (issueToUpdate.number === 0) {
     await createAnIssueForThisDeploymentIfItDoesNotExist(octokit, ghLogin, issueToUpdate, labels, project, actor);
+    if (labels.deployLabel != null) {
+      await addLabelToIssue(octokit, labels.deployLabel, issueToUpdate.number);
+      if (labels.deployLabel === 'deleted' || labels.deployLabel === 'destroyed') {
+        await removeLabelFromIssue(octokit, labels.currentlyInEnv, issueToUpdate.number);
+      }
+    }
   } else {
     await appendDeploymentDetailsToIssue(ghToken, issueToUpdate, project, actor, labels.deployStatus);
     await removeStatusLabelsFromIssue(octokit, issueToUpdate.labels, issueToUpdate.number, labels.deployStatus);
@@ -21771,6 +21794,27 @@ async function run() {
     await addLabelToIssue(octokit, labels.default, issueToUpdate.number);
     if (workflowFullyRan) {
       await addLabelToIssue(octokit, labels.currentlyInEnv, issueToUpdate.number);
+    }
+    if (labels.deployLabel != null) {
+      await addLabelToIssue(octokit, labels.deployLabel, issueToUpdate.number);
+      if (labels.deployLabel === 'deleted' || labels.deployLabel === 'destroyed') {
+        await removeLabelFromIssue(octokit, labels.currentlyInEnv, issueToUpdate.number);
+      }
+    } else {
+      const issuesWithDeleteLabel = await findIssuesWithLabel(graphqlWithAuth, 'deleted', issueToUpdate.deployableType);
+      if (issuesWithDeleteLabel) {
+        for (let index = 0; index < issuesWithDeleteLabel.length; index++) {
+          const issueNumber = issuesWithDeleteLabel[index];
+          await removeLabelFromIssue(octokit, 'deleted', issueNumber);
+        }
+      }
+      const issuesWithDestroyLabel = await findIssuesWithLabel(graphqlWithAuth, 'destroyed', issueToUpdate.deployableType);
+      if (issuesWithDestroyLabel) {
+        for (let index = 0; index < issuesWithDestroyLabel.length; index++) {
+          const issueNumber = issuesWithDestroyLabel[index];
+          await removeLabelFromIssue(octokit, 'destroyed', issueNumber);
+        }
+      }
     }
   }
   if (issueToUpdate.projectCardId === 0) {
