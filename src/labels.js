@@ -10,6 +10,7 @@ const colors = {
   cancelled: 'DEDEDE', //Gray
   skipped: 'DEDEDE', //Gray
   current: 'FBCA04', //Yellow
+  currentSlot: '1D76DB', //Blue
   default: 'C1B8FF', //Purple
   deleted: 'D93F0B', //Red
   destroyed: 'D93F0B', //Red
@@ -172,7 +173,7 @@ async function findIssuesWithLabel(graphqlWithAuth, labelName, deployableType) {
   }
 }
 
-async function makeSureLabelsForThisActionExist(octokit, labels) {
+async function makeSureLabelsForThisActionExist(octokit, labels, slotSwappedWithProductionSlot = true) {
   core.startGroup(`Making sure the labels this action uses exist...`);
   existingLabelNames = await listLabelsForRepo(octokit);
 
@@ -186,7 +187,7 @@ async function makeSureLabelsForThisActionExist(octokit, labels) {
 
   if (existingLabelNames.indexOf(labels.currentlyInEnv) === -1) {
     labels.currentlyInEnvExists = false;
-    await createLabel(octokit, labels.currentlyInEnv, colors['current']);
+    await createLabel(octokit, labels.currentlyInEnv, slotSwappedWithProductionSlot ? colors['current'] : colors['currentSlot']);
   } else {
     core.info(`The ${labels.currentlyInEnv} label exists.`);
   }

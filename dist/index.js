@@ -18505,6 +18505,7 @@ var require_labels = __commonJS({
       cancelled: 'DEDEDE',
       skipped: 'DEDEDE',
       current: 'FBCA04',
+      currentSlot: '1D76DB',
       default: 'C1B8FF',
       deleted: 'D93F0B',
       destroyed: 'D93F0B',
@@ -18649,7 +18650,7 @@ var require_labels = __commonJS({
         return [];
       }
     }
-    async function makeSureLabelsForThisActionExist2(octokit2, labels2) {
+    async function makeSureLabelsForThisActionExist2(octokit2, labels2, slotSwappedWithProductionSlot2 = true) {
       core2.startGroup(`Making sure the labels this action uses exist...`);
       existingLabelNames = await listLabelsForRepo(octokit2);
       if (existingLabelNames.indexOf(labels2.deployStatus) === -1) {
@@ -18660,7 +18661,7 @@ var require_labels = __commonJS({
       }
       if (existingLabelNames.indexOf(labels2.currentlyInEnv) === -1) {
         labels2.currentlyInEnvExists = false;
-        await createLabel(octokit2, labels2.currentlyInEnv, colors['current']);
+        await createLabel(octokit2, labels2.currentlyInEnv, slotSwappedWithProductionSlot2 ? colors['current'] : colors['currentSlot']);
       } else {
         core2.info(`The ${labels2.currentlyInEnv} label exists.`);
       }
@@ -21601,9 +21602,15 @@ var require_issues = __commonJS({
       core2.startGroup(`Creating an issue for this deployment since it does not exist...`);
       const workflowUrl = `[${github2.context.runNumber}](https://github.com/${owner}/${repo}/actions/runs/${github2.context.runId})`;
       const nowString = getDateString();
-      const body = `|Env|Workflow|Status|Date|Actor|
-|---|---|---|---|---|
-|${project2.columnName}|${workflowUrl}|${labels2.deployStatus}|${nowString}|${actor2}|`;
+      const slotDeployBody = `|Env|Workflow|Status|Date|Actor|Deploy Label|Source Slot|Target Slot|
+|---|---|---|---|---|---|---|---|
+|${project2.columnName}|${workflowUrl}|${labels2.deployStatus}|${nowString}|${actor2}|${labels2.deployLabel != null ? labels2.deployLabel : 'NA'}|${
+        project2.sourceSlot
+      }|${project2.targetSlot}|`;
+      const defaultBody = `|Env|Workflow|Status|Date|Actor|Deploy Label|
+|---|---|---|---|---|---|
+|${project2.columnName}|${workflowUrl}|${labels2.deployStatus}|${nowString}|${actor2}|${labels2.deployLabel != null ? labels2.deployLabel : 'NA'}|`;
+      const body = project2.enableDeploymentSlotTracking ? slotDeployBody : defaultBody;
       await octokit2.rest.issues
         .create({
           owner,
@@ -21643,12 +21650,24 @@ var require_issues = __commonJS({
           throw error;
         });
     }
-    async function appendDeploymentDetailsToIssue2(ghToken2, issueToUpdate2, project2, actor2, deployStatus2) {
+    async function appendDeploymentDetailsToIssue2(ghToken2, issueToUpdate2, project2, actor2, deployStatus2, deployLabel2 = null) {
       core2.startGroup(`Appending the deployment details to the issue...`);
       let workflowUrl = `[${github2.context.workflow} #${github2.context.runNumber}](https://github.com/${owner}/${repo}/actions/runs/${github2.context.runId})`;
       let nowString = getDateString();
-      let bodyText = `${issueToUpdate2.body}
-|${project2.columnName}|${workflowUrl}|${deployStatus2}|${nowString}|${actor2}|`;
+      const defaultTableColumns = `|Env|Workflow|Status|Date|Actor|Deploy Label|
+|---|---|---|---|---|---|`;
+      const slotTableColumns = `|Env|Workflow|Status|Date|Actor|Deploy Label|Source Slot|Target Slot|
+|---|---|---|---|---|---|---|---|`;
+      let issueBodyText = project2.enableDeploymentSlotTracking
+        ? issueToUpdate2.body.replace(defaultTableColumns, slotTableColumns)
+        : issueToUpdate2.body;
+      let slotDeployBodyText = `${issueBodyText}
+|${project2.columnName}|${workflowUrl}|${deployStatus2}|${nowString}|${actor2}|${deployLabel2 != null ? deployLabel2 : 'NA'}|${project2.sourceSlot}|${
+        project2.targetSlot
+      }|`;
+      let defaultBodyText = `${issueBodyText}
+|${project2.columnName}|${workflowUrl}|${deployStatus2}|${nowString}|${actor2}|${deployLabel2 != null ? deployLabel2 : 'NA'}|`;
+      let bodyText = project2.enableDeploymentSlotTracking ? slotDeployBodyText : defaultBodyText;
       let request = {
         title: issueToUpdate2.title,
         body: bodyText
@@ -21695,6 +21714,10 @@ var environment = core.getInput('environment', requiredArgOptions);
 var boardNumber = core.getInput('board-number', requiredArgOptions);
 var deployStatus = core.getInput('deploy-status', requiredArgOptions);
 var deployLabel = core.getInput('deploy-label');
+var enableDeploymentSlotTracking = core.getInput('enable-deployment-slot-tracking') == 'true';
+var slotSwappedWithProductionSlot = core.getInput('slot-swapped-with-production-slot') == 'true';
+var targetSlot = core.getInput('target-slot')?.toLocaleLowerCase();
+var sourceSlot = core.getInput('source-slot')?.toLocaleLowerCase();
 var ref = core.getInput('ref', requiredArgOptions);
 var refType = core.getInput('ref-type');
 var deployableType = core.getInput('deployable-type');
@@ -21721,16 +21744,22 @@ function setupAction() {
     columnId: '',
     columnNodeId: '',
     columnName: environment,
+    targetSlot,
+    sourceSlot,
+    enableDeploymentSlotTracking,
     labels: []
   };
   labels = {
     deployStatus: deployStatus.toLowerCase(),
-    currentlyInEnv: `\u{1F680}currently-in-${environment.toLowerCase()}`,
-    default: 'deployment-board',
-    deployLabel: deployLabel ? deployLabel.toLowerCase() : null,
     deployStatusExists: true,
+    currentlyInEnv:
+      enableDeploymentSlotTracking && !slotSwappedWithProductionSlot
+        ? `\u{1F3B0}currently-in-${environment.toLowerCase()}-${targetSlot.toLowerCase()}`
+        : `\u{1F680}currently-in-${environment.toLowerCase()}`,
     currentlyInEnvExists: true,
+    default: 'deployment-board',
     defaultExists: true,
+    deployLabel: deployLabel ? deployLabel.toLowerCase() : null,
     deployLabelExists: deployLabel ? true : false
   };
   issueToUpdate = {
@@ -21767,9 +21796,17 @@ function setupAction() {
 }
 async function run() {
   await getProjectData(graphqlWithAuth, project);
-  await makeSureLabelsForThisActionExist(octokit, labels);
+  await makeSureLabelsForThisActionExist(octokit, labels, slotSwappedWithProductionSlot);
   await findTheIssueForThisDeploymentByTitle(graphqlWithAuth, ghLogin, issueToUpdate, project.id);
   let workflowFullyRan = labels.deployStatus === 'success' || labels.deployStatus === 'failure';
+  if (enableDeploymentSlotTracking) {
+    const slotSummary = `This deployment includes slot deploys. Current Slot Variables:
+  * Target Slot: ${targetSlot}
+  * Source Slot: ${sourceSlot}
+  * Slot Swapped with Production: ${slotSwappedWithProductionSlot}
+    `;
+    core.info(slotSummary);
+  }
   if (workflowFullyRan) {
     const issuesWithCurrentlyInEnvLabel = await findIssuesWithLabel(graphqlWithAuth, labels.currentlyInEnv, issueToUpdate.deployableType);
     if (issuesWithCurrentlyInEnvLabel) {
@@ -21788,15 +21825,27 @@ async function run() {
       }
     }
   } else {
-    await appendDeploymentDetailsToIssue(ghToken, issueToUpdate, project, actor, labels.deployStatus);
+    await appendDeploymentDetailsToIssue(ghToken, issueToUpdate, project, actor, labels.deployStatus, labels.deployLabel);
     await removeStatusLabelsFromIssue(octokit, issueToUpdate.labels, issueToUpdate.number, labels.deployStatus);
     await addLabelToIssue(octokit, labels.deployStatus, issueToUpdate.number);
     await addLabelToIssue(octokit, labels.default, issueToUpdate.number);
     if (workflowFullyRan) {
       await addLabelToIssue(octokit, labels.currentlyInEnv, issueToUpdate.number);
+      if (enableDeploymentSlotTracking && slotSwappedWithProductionSlot) {
+        const sourceSlotLabel = `${labels.currentlyInEnv.replace('\u{1F680}', '\u{1F3B0}')}-${sourceSlot}`;
+        const issuesWithSlotSwappedLabel = await findIssuesWithLabel(graphqlWithAuth, sourceSlotLabel, issueToUpdate.deployableType);
+        if (issuesWithSlotSwappedLabel) {
+          for (let index = 0; index < issuesWithSlotSwappedLabel.length; index++) {
+            const issueNumber = issuesWithSlotSwappedLabel[index];
+            await removeLabelFromIssue(octokit, sourceSlotLabel, issueNumber);
+          }
+        }
+      }
     }
     if (labels.deployLabel != null) {
-      await addLabelToIssue(octokit, labels.deployLabel, issueToUpdate.number);
+      if (!enableDeploymentSlotTracking && labels.deployLabel != 'deleted') {
+        await addLabelToIssue(octokit, labels.deployLabel, issueToUpdate.number);
+      }
       if (labels.deployLabel === 'deleted' || labels.deployLabel === 'destroyed') {
         await removeLabelFromIssue(octokit, labels.currentlyInEnv, issueToUpdate.number);
       }
