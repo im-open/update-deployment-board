@@ -91,11 +91,11 @@ Some repositories that contain multiple deployable artifacts may need to customi
 | `deployable-type`       | false       | None | String indicating the type of deployable item (*like API, BFF, MFE, SVC, DB, etc*).<br/><br/>In repositories with multiple deployable artifacts that are deployed separately but use the same release number this arg is the mechanism for creating separate issues to track the deployment of each separate type.<br/><br/>  When provided, this will be added to the beginning of the issue title. |
 | `deploy-status`         | true        | None | The status of the deployment.  <br/><br/>Possible Values: *success, failure, cancelled, skipped*  |
 | `deploy-label`          | false       | None | The optional label of the deployment <br/><br/>Possible Values: *deleted, destroyed, your-custom-label*      |
-| `enable-deployment-slot-tracking`   | false| `false` | Enable App Service deployment slot tracking on deployment board. <br/><br/>Possible Values: *true,false*    |
-| `slot-swapped-with-production-slot:`|false | `false` | Did this deployment swap slots with production? <br/><br/>Possible Values: *true,false*      |
+| `enable-deployment-slot-tracking`   | false | `false` | Enable App Service deployment slot tracking on deployment board. <br/><br/>Possible Values: *true,false*    |
+| `slot-swapped-with-production-slot:`| false | `false` | Did this deployment swap slots with production? <br/><br/>Possible Values: *true,false*      |
 | `target-slot`    | false       | `production` | The target slot that was deployed. <br/><br/>Possible Values: *production,predeploy,blue,yellow,canary,red,loadtest,your-custom-slot*      |
 | `source-slot`    | false       | `production` | The source slot that was deployed. <br/><br/>Possible Values: *production,predeploy,blue,yellow,canary,red,loadtest,your-custom-slot*      |
-| `timezone`              | false       | None | IANA time zone name (e.g. America/Denver) to display dates in.  If time zone is not provided, dates will be shown in UTC   |
+| `timezone`       | false       | None | IANA time zone name (e.g. America/Denver) to display dates in.  If time zone is not provided, dates will be shown in UTC   |
 
 ## Usage Examples
 
