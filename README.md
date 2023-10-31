@@ -124,7 +124,7 @@ jobs:
       - name: Update deployment board with Defaults
         id: defaults
         continue-on-error: true                             # Setting to true so the job doesn't fail if updating the board fails.
-        uses: im-open/update-deployment-board@v1.6.0        # You may also reference just the major or major.minor version
+        uses: im-open/update-deployment-board@v1.7.0        # You may also reference just the major or major.minor version
         with:
           github-token: ${{ secrets.GITHUB_TOKEN}}          # If a different token is used, update github-login with the corresponding account
           environment: 'QA'
@@ -135,7 +135,7 @@ jobs:
       - name: Update deployment board with all values provided
         id: provided
         continue-on-error: true                             # Setting to true so the job doesn't fail if updating the board fails.
-        uses: im-open/update-deployment-board@v1.6.0
+        uses: im-open/update-deployment-board@v1.7.0
         with:
           github-token: ${{ secrets.BOT_TOKEN}}             # Since a different token is used, the github-login should be set to the corresponding acct
           github-login: 'my-bot'
@@ -145,6 +145,65 @@ jobs:
           ref-type: 'branch' 
           deploy-status: ${{ steps.deploy-to-qa.outcome }}  # outcome is the result of the step before continue-on-error is applied
           deploy-label: 'deleted' # Custom label to show status for slot deletion and terraform destroy deployments
+          enable-deployment-slot-tracking: true
+          slot-swapped-with-production-slot: true
+          target-slot: 'production'
+          source-slot: 'predeploy'
+          timezone: 'america/denver'
+
+      - name: Update deployment board with app service slot deploy no swap
+        id: provided
+        continue-on-error: true                             # Setting to true so the job doesn't fail if updating the board fails.
+        uses: im-open/update-deployment-board@v1.7.0
+        with:
+          github-token: ${{ secrets.BOT_TOKEN}}             # Since a different token is used, the github-login should be set to the corresponding acct
+          github-login: 'my-bot'
+          environment: 'QA'
+          board-number: 1
+          ref: 'feature-branch-16'
+          ref-type: 'branch' 
+          deploy-status: ${{ steps.deploy-to-qa.outcome }}  # outcome is the result of the step before continue-on-error is applied
+          enable-deployment-slot-tracking: true
+          slot-swapped-with-production-slot: false
+          target-slot: 'predeploy'
+          source-slot: 'predeploy'
+          timezone: 'america/denver'
+
+      - name: Update deployment board with app service slot deploy with swap
+        id: provided
+        continue-on-error: true                             # Setting to true so the job doesn't fail if updating the board fails.
+        uses: im-open/update-deployment-board@v1.7.0
+        with:
+          github-token: ${{ secrets.BOT_TOKEN}}             # Since a different token is used, the github-login should be set to the corresponding acct
+          github-login: 'my-bot'
+          environment: 'QA'
+          board-number: 1
+          ref: 'feature-branch-16'
+          ref-type: 'branch' 
+          deploy-status: ${{ steps.deploy-to-qa.outcome }}  # outcome is the result of the step before continue-on-error is applied
+          enable-deployment-slot-tracking: true
+          slot-swapped-with-production-slot: true
+          target-slot: 'production'
+          source-slot: 'predeploy'
+          timezone: 'america/denver'
+
+      - name: Update deployment board with app service slot delete
+        id: provided
+        continue-on-error: true                             # Setting to true so the job doesn't fail if updating the board fails.
+        uses: im-open/update-deployment-board@v1.7.0
+        with:
+          github-token: ${{ secrets.BOT_TOKEN}}             # Since a different token is used, the github-login should be set to the corresponding acct
+          github-login: 'my-bot'
+          environment: 'QA'
+          board-number: 1
+          ref: 'feature-branch-16'
+          ref-type: 'branch' 
+          deploy-status: ${{ steps.deploy-to-qa.outcome }}  # outcome is the result of the step before continue-on-error is applied
+          deploy-label: 'deleted' # Custom label to show status for slot deletion and terraform destroy deployments
+          enable-deployment-slot-tracking: true
+          slot-swapped-with-production-slot: false
+          target-slot: 'blue'
+          source-slot: 'blue'
           timezone: 'america/denver'
       
       - name: Now Fail the job if the deploy step failed 
