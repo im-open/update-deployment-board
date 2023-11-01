@@ -117,9 +117,17 @@ async function createAnIssueForThisDeploymentIfItDoesNotExist(octokit, ghLogin, 
   const workflowUrl = `[${github.context.runNumber}](https://github.com/${owner}/${repo}/actions/runs/${github.context.runId})`;
   const nowString = getDateString();
 
-  const body = `|Env|Workflow|Status|Date|Actor|
-|---|---|---|---|---|
-|${project.columnName}|${workflowUrl}|${labels.deployStatus}|${nowString}|${actor}|`;
+  const slotDeployBody = `|Env|Workflow|Status|Date|Actor|Deploy Label|Source Slot|Target Slot|
+|---|---|---|---|---|---|---|---|
+|${project.columnName}|${workflowUrl}|${labels.deployStatus}|${nowString}|${actor}|${labels.deployLabel != null ? labels.deployLabel : 'NA'}|${
+    project.sourceSlot
+  }|${project.targetSlot}|`;
+
+  const defaultBody = `|Env|Workflow|Status|Date|Actor|Deploy Label|
+|---|---|---|---|---|---|
+|${project.columnName}|${workflowUrl}|${labels.deployStatus}|${nowString}|${actor}|${labels.deployLabel != null ? labels.deployLabel : 'NA'}|`;
+
+  const body = project.enableDeploymentSlotTracking ? slotDeployBody : defaultBody;
 
   await octokit.rest.issues
     .create({
@@ -165,12 +173,26 @@ async function createAnIssueForThisDeploymentIfItDoesNotExist(octokit, ghLogin, 
     });
 }
 
-async function appendDeploymentDetailsToIssue(ghToken, issueToUpdate, project, actor, deployStatus) {
+async function appendDeploymentDetailsToIssue(ghToken, issueToUpdate, project, actor, deployStatus, deployLabel = null) {
   core.startGroup(`Appending the deployment details to the issue...`);
 
   let workflowUrl = `[${github.context.workflow} #${github.context.runNumber}](https://github.com/${owner}/${repo}/actions/runs/${github.context.runId})`;
   let nowString = getDateString();
-  let bodyText = `${issueToUpdate.body}\n|${project.columnName}|${workflowUrl}|${deployStatus}|${nowString}|${actor}|`;
+
+  const defaultTableColumns = `|Env|Workflow|Status|Date|Actor|Deploy Label|
+|---|---|---|---|---|---|`;
+  const slotTableColumns = `|Env|Workflow|Status|Date|Actor|Deploy Label|Source Slot|Target Slot|
+|---|---|---|---|---|---|---|---|`;
+  let issueBodyText = project.enableDeploymentSlotTracking ? issueToUpdate.body.replace(defaultTableColumns, slotTableColumns) : issueToUpdate.body;
+
+  let slotDeployBodyText = `${issueBodyText}\n|${project.columnName}|${workflowUrl}|${deployStatus}|${nowString}|${actor}|${
+    deployLabel != null ? deployLabel : 'NA'
+  }|${project.sourceSlot}|${project.targetSlot}|`;
+  let defaultBodyText = `${issueBodyText}\n|${project.columnName}|${workflowUrl}|${deployStatus}|${nowString}|${actor}|${
+    deployLabel != null ? deployLabel : 'NA'
+  }|`;
+
+  let bodyText = project.enableDeploymentSlotTracking ? slotDeployBodyText : defaultBodyText;
 
   //The octokit call was leaving the issue number off the url so it would not succeed.  Using axios instead.
   let request = {

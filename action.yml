@@ -29,6 +29,22 @@ inputs:
   deploy-label:
     description: 'The optional label of the deployment [deleted|destroyed|<your-custom-label>]'
     required: false
+  enable-deployment-slot-tracking:
+    description: 'Enable App Service deployment slot tracking on deployment board? [true|false]'
+    required: false
+    default: 'false'
+  slot-swapped-with-production-slot:
+    description: 'Did this deployment swap slots with production slot? Set to true for swapping slot immediately with production slot. [true|false]'
+    required: false
+    default: 'false'
+  target-slot:
+    description: 'The target slot that was deployed to [production|blue|yellow|canary|red|loadtest|predeploy|your-custom-slot]'
+    required: false
+    default: 'production'
+  source-slot:
+    description: 'The source slot that was deployed to [production|blue|yellow|canary|red|loadtest|predeploy|your-custom-slot]'
+    required: false
+    default: 'production'
   timezone:
     description: 'IANA time zone name (e.g. America/Denver) to display dates in.  If timezone is not provided, dates will be shown in UTC'
     required: false

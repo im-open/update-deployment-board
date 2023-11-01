@@ -26,6 +26,10 @@ const environment = core.getInput('environment', requiredArgOptions);
 const boardNumber = core.getInput('board-number', requiredArgOptions);
 const deployStatus = core.getInput('deploy-status', requiredArgOptions);
 const deployLabel = core.getInput('deploy-label');
+const enableDeploymentSlotTracking = core.getInput('enable-deployment-slot-tracking') == 'true';
+const slotSwappedWithProductionSlot = core.getInput('slot-swapped-with-production-slot') == 'true';
+const targetSlot = core.getInput('target-slot')?.toLocaleLowerCase();
+const sourceSlot = core.getInput('source-slot')?.toLocaleLowerCase();
 const ref = core.getInput('ref', requiredArgOptions);
 let refType = core.getInput('ref-type');
 const deployableType = core.getInput('deployable-type');
@@ -54,17 +58,23 @@ function setupAction() {
     columnId: '',
     columnNodeId: '',
     columnName: environment,
+    targetSlot: targetSlot,
+    sourceSlot: sourceSlot,
+    enableDeploymentSlotTracking: enableDeploymentSlotTracking,
     labels: []
   };
 
   labels = {
     deployStatus: deployStatus.toLowerCase(), //success, failure, cancelled, skipped
-    currentlyInEnv: `🚀currently-in-${environment.toLowerCase()}`,
-    default: 'deployment-board',
-    deployLabel: deployLabel ? deployLabel.toLowerCase() : null,
     deployStatusExists: true,
+    currentlyInEnv:
+      enableDeploymentSlotTracking && !slotSwappedWithProductionSlot
+        ? `🎰currently-in-${environment.toLowerCase()}-${targetSlot.toLowerCase()}`
+        : `🚀currently-in-${environment.toLowerCase()}`,
     currentlyInEnvExists: true,
+    default: 'deployment-board',
     defaultExists: true,
+    deployLabel: deployLabel ? deployLabel.toLowerCase() : null,
     deployLabelExists: deployLabel ? true : false
   };
 
@@ -107,7 +117,7 @@ function setupAction() {
 async function run() {
   await getProjectData(graphqlWithAuth, project);
 
-  await makeSureLabelsForThisActionExist(octokit, labels);
+  await makeSureLabelsForThisActionExist(octokit, labels, slotSwappedWithProductionSlot);
 
   await findTheIssueForThisDeploymentByTitle(graphqlWithAuth, ghLogin, issueToUpdate, project.id);
 
@@ -115,6 +125,14 @@ async function run() {
   //If the status was cancelled or skipped, we don't really know what is currently where so don't change anything.
   let workflowFullyRan = labels.deployStatus === 'success' || labels.deployStatus === 'failure';
 
+  if (enableDeploymentSlotTracking) {
+    const slotSummary = `This deployment includes slot deploys. Current Slot Variables:
+  * Target Slot: ${targetSlot}
+  * Source Slot: ${sourceSlot}
+  * Slot Swapped with Production: ${slotSwappedWithProductionSlot}
+    `;
+    core.info(slotSummary);
+  }
   if (workflowFullyRan) {
     const issuesWithCurrentlyInEnvLabel = await findIssuesWithLabel(graphqlWithAuth, labels.currentlyInEnv, issueToUpdate.deployableType);
     if (issuesWithCurrentlyInEnvLabel) {
@@ -134,17 +152,29 @@ async function run() {
       }
     }
   } else {
-    await appendDeploymentDetailsToIssue(ghToken, issueToUpdate, project, actor, labels.deployStatus);
+    await appendDeploymentDetailsToIssue(ghToken, issueToUpdate, project, actor, labels.deployStatus, labels.deployLabel);
     await removeStatusLabelsFromIssue(octokit, issueToUpdate.labels, issueToUpdate.number, labels.deployStatus);
     await addLabelToIssue(octokit, labels.deployStatus, issueToUpdate.number);
     await addLabelToIssue(octokit, labels.default, issueToUpdate.number);
 
     if (workflowFullyRan) {
       await addLabelToIssue(octokit, labels.currentlyInEnv, issueToUpdate.number);
+      if (enableDeploymentSlotTracking && slotSwappedWithProductionSlot) {
+        const sourceSlotLabel = `${labels.currentlyInEnv.replace('🚀', '🎰')}-${sourceSlot}`;
+        const issuesWithSlotSwappedLabel = await findIssuesWithLabel(graphqlWithAuth, sourceSlotLabel, issueToUpdate.deployableType);
+        if (issuesWithSlotSwappedLabel) {
+          for (let index = 0; index < issuesWithSlotSwappedLabel.length; index++) {
+            const issueNumber = issuesWithSlotSwappedLabel[index];
+            await removeLabelFromIssue(octokit, sourceSlotLabel, issueNumber);
+          }
+        }
+      }
     }
 
     if (labels.deployLabel != null) {
-      await addLabelToIssue(octokit, labels.deployLabel, issueToUpdate.number);
+      if (!enableDeploymentSlotTracking && labels.deployLabel != 'deleted') {
+        await addLabelToIssue(octokit, labels.deployLabel, issueToUpdate.number);
+      }
       if (labels.deployLabel === 'deleted' || labels.deployLabel === 'destroyed') {
         await removeLabelFromIssue(octokit, labels.currentlyInEnv, issueToUpdate.number);
       }
