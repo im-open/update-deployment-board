@@ -2,9 +2,14 @@
 
 This action creates a visual representation of deployments on a Project board in your GitHub repository.  When this action is included in a workflow that does a deployment it will generate or update an existing issue and include it on the specified project board.  
 
+## DEPRECATION NOTICE
+
+This action was implemented as a visual way to represent our deployments and we looked forward to GitHub creating a native feature that represented deployments to environments more accurately than just reporting which GitHub environments had been accessed.  The initial work used GitHub Projects which are now considered Classic Projects.  The API this action utilizes is not compatible with the new Issues and Projects so this action will be deprecated in the near future.  We haven't found a suitable alternative within GitHub so our focus will be on an external solution at this time.
+
 ## Index <!-- omit in toc -->
 
 - [update-deployment-board](#update-deployment-board)
+  - [DEPRECATION NOTICE](#deprecation-notice)
   - [Project Board](#project-board)
   - [Action Conventions](#action-conventions)
   - [Inputs](#inputs)
