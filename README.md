@@ -31,6 +31,10 @@ When the action runs it will label the issue with three labels
   4. Deploy Label (Optional) `deleted|destroyed|your-custom-label`
      - The labels `deleted|destroyed` will be the color red, all other labels will be grey.
      - This label gives the option of adding a custom label to a deploy issue. The primary use case is marking an app service slot for deletion or terraform destroy on an environment
+  5. `🎰currently-in-<dev|qa|stage|prod|other-provided-env>-<slotname>`
+      - This label mirrors the `currently-in` label in number 1, but is for app service slots only
+      - The icon is a `slot_machine` and the label will be blue to differentiate between a primary deploy to the production slot and a non-production slot deploy.
+      - You can track slot deployments by setting `enable-deployment-slot-tracking` to `true` and provide the following slot inputs `slot-swapped-with-production-slot,target-slot,source-slot`.
 
 The issue will contain a list of deployments for the ref which include the environment, a link to the workflow run, the status, date of deployment and the actor who kicked off the workflow.  
 <kbd><img src="./docs/issue-details.png"></img></kbd>
