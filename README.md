@@ -1,6 +1,6 @@
 # update-deployment-board
 
-This action creates a visual representation of deployments on a Project board in your GitHub repository.  When this action is included in a workflow that does a deployment it will generate or update an existing issue and include it on the specified project board.  
+This action creates a visual representation of deployments on a Project board in your GitHub repository.  When this action is included in a workflow that does a deployment it will generate or update an existing issue and include it on the specified project board.
 
 ## DEPRECATION NOTICE
 
@@ -8,41 +8,41 @@ This action was implemented as a visual way to represent our deployments and we 
 
 ## Index <!-- omit in toc -->
 
-- [update-deployment-board](#update-deployment-board)
-  - [DEPRECATION NOTICE](#deprecation-notice)
-  - [Project Board](#project-board)
-  - [Action Conventions](#action-conventions)
-  - [Inputs](#inputs)
-  - [Usage Examples](#usage-examples)
-  - [Contributing](#contributing)
-    - [Incrementing the Version](#incrementing-the-version)
-    - [Source Code Changes](#source-code-changes)
-    - [Recompiling Manually](#recompiling-manually)
-    - [Updating the README.md](#updating-the-readmemd)
-  - [Code of Conduct](#code-of-conduct)
-  - [License](#license)
-  
+- [DEPRECATION NOTICE](#deprecation-notice)
+- [Inputs](#inputs)
+- [Outputs](#outputs)
+- [Usage Examples](#usage-examples)
+- [Contributing](#contributing)
+  - [Incrementing the Version](#incrementing-the-version)
+  - [Source Code Changes](#source-code-changes)
+  - [Recompiling Manually](#recompiling-manually)
+  - [Updating the README.md](#updating-the-readmemd)
+- [Code of Conduct](#code-of-conduct)
+- [License](#license)
+
 
 When the action runs it will add a deployment and deployment status record to the repo.
 
 ## Inputs
 
-| Parameter               | Is Required | Default Value | Description |
-|-------------------------|-------------|---------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `github-token`          | true        | None | A token with permissions to create and update issues.  |
-| `github-login`          | false       | None | The login associated with the github-token.  Defaults to github-actions but should be updated if a different account owns the token provided.  |
-| `environment`           | true        | None | The environment the branch, tag or SHA was deployed to.   |
-| `board-number`          | true        | None | The number of the project board that will be updated.  Can be found by using the number in the board's url. <br/><br/> For example the number would be 1 for:<br/><https://github.com/im-open/update-deployment-board/projects/1>. |
-| `ref`                   | true        | None | The branch, tag or SHA that was deployed.  |
-| `ref-type`              | false       | None | The type of ref that was deployed.  If not provided the action will use some regex patterns to try to identify the type.  <br/><br/>Possible Values: *branch, tag, sha* |
-| `deployable-type`       | false       | None | String indicating the type of deployable item (*like API, BFF, MFE, SVC, DB, etc*).<br/><br/>In repositories with multiple deployable artifacts that are deployed separately but use the same release number this arg is the mechanism for creating separate issues to track the deployment of each separate type.<br/><br/>  When provided, this will be added to the beginning of the issue title. |
-| `deploy-status`         | true        | None | The status of the deployment.  <br/><br/>Possible Values: *success, failure, cancelled, skipped*  |
-| `deploy-label`          | false       | None | The optional label of the deployment <br/><br/>Possible Values: *deleted, destroyed, your-custom-label*      |
-| `enable-deployment-slot-tracking`   | false | `false` | Enable App Service deployment slot tracking on deployment board. <br/><br/>Possible Values: *true,false*    |
-| `slot-swapped-with-production-slot:`| false | `false` | Did this deployment swap slots with production? <br/><br/>Possible Values: *true,false*      |
-| `target-slot`    | false       | `production` | The target slot that was deployed. <br/><br/>Possible Values: *production,predeploy,blue,yellow,canary,red,loadtest,your-custom-slot*      |
-| `source-slot`    | false       | `production` | The source slot that was deployed. <br/><br/>Possible Values: *production,predeploy,blue,yellow,canary,red,loadtest,your-custom-slot*      |
-| `timezone`       | false       | None | IANA time zone name (e.g. America/Denver) to display dates in.  If time zone is not provided, dates will be shown in UTC   |
+| Parameter            | Is Required | Description                                                                                               |
+| -------------------- | ----------- | --------------------------------------------------------------------------------------------------------- |
+| `github-token`       | true        | A token with permissions to create and update issues                                                      |
+| `environment`        | true        | The environment the branch, tag or SHA was deployed to, i.e. [DEV\|QA\|STAGE\|DEMO\|UAT\|PROD]            |
+| `owner`              | true        | The org or repo owner.                                                                                    |
+| `repo`               | true        | The repo the deployment will be created in.                                                               |
+| `ref`                | true        | The branch, tag or SHA that was deployed                                                                  |
+| `deploy-status`      | true        | The status of the deployment [error\|failure\|success]                                                    |
+| `deployment-message` | false       | Any message to be delivered along side of the status                                                      |
+| `entities`           | true        | The entities that are affected by the deployment, i.e. ["proj-app", "proj-infrastruction", "proj-db"]     |
+| `instance`           | true        | The target deployment server or app service and availability zone, i.e. "NA26", "NA26-slot1", "NA27-blue" |
+| `workflow-run-url`   | true        | The url of the workflow run, i.e."https://github.com/[owner]/[repo]/actions/runs/[workflow run id]"       |
+
+## Outputs
+
+| Parameter            | Description                              |
+| -------------------- | ---------------------------------------- |
+| github-deployment-id | The GitHub id of the workflow deployment |
 
 ## Usage Examples
 
@@ -66,7 +66,7 @@ jobs:
         continue-on-error: true  #Setting to true so the deployment board can be updated, even if this fails
         run: |
           ./deploy-to-qa.sh
-        
+
         # Defaults to using github-actions for the login, regex matching to determine the ref-type and times shown in UTC
       - name: Update deployment board with Defaults
         id: defaults
@@ -78,7 +78,7 @@ jobs:
           board-number: 1
           ref: ${{ github.event.inputs.branchTagOrSha }}
           deploy-status: ${{ steps.deploy-to-qa.outcome }}  # outcome is the result of the step before continue-on-error is applied
-      
+
       - name: Update deployment board with all values provided
         id: provided
         continue-on-error: true                             # Setting to true so the job doesn't fail if updating the board fails.
@@ -89,7 +89,7 @@ jobs:
           environment: 'QA'
           board-number: 1
           ref: 'feature-branch-16'
-          ref-type: 'branch' 
+          ref-type: 'branch'
           deploy-status: ${{ steps.deploy-to-qa.outcome }}  # outcome is the result of the step before continue-on-error is applied
           deploy-label: 'deleted' # Custom label to show status for slot deletion and terraform destroy deployments
           enable-deployment-slot-tracking: true
@@ -108,7 +108,7 @@ jobs:
           environment: 'QA'
           board-number: 1
           ref: 'feature-branch-16'
-          ref-type: 'branch' 
+          ref-type: 'branch'
           deploy-status: ${{ steps.deploy-to-qa.outcome }}  # outcome is the result of the step before continue-on-error is applied
           enable-deployment-slot-tracking: true
           slot-swapped-with-production-slot: false
@@ -126,7 +126,7 @@ jobs:
           environment: 'QA'
           board-number: 1
           ref: 'feature-branch-16'
-          ref-type: 'branch' 
+          ref-type: 'branch'
           deploy-status: ${{ steps.deploy-to-qa.outcome }}  # outcome is the result of the step before continue-on-error is applied
           enable-deployment-slot-tracking: true
           slot-swapped-with-production-slot: true
@@ -144,7 +144,7 @@ jobs:
           environment: 'QA'
           board-number: 1
           ref: 'feature-branch-16'
-          ref-type: 'branch' 
+          ref-type: 'branch'
           deploy-status: ${{ steps.deploy-to-qa.outcome }}  # outcome is the result of the step before continue-on-error is applied
           deploy-label: 'deleted' # Custom label to show status for slot deletion and terraform destroy deployments
           enable-deployment-slot-tracking: true
@@ -152,9 +152,9 @@ jobs:
           target-slot: 'blue'
           source-slot: 'blue'
           timezone: 'america/denver'
-      
-      - name: Now Fail the job if the deploy step failed 
-        if: steps.deploy-to-qa.outcome == 'failure' 
+
+      - name: Now Fail the job if the deploy step failed
+        if: steps.deploy-to-qa.outcome == 'failure'
         run: exit 1
 ```
 
@@ -172,7 +172,7 @@ When creating PRs, please review the following guidelines:
 This repo uses [git-version-lite] in its workflows to examine commit messages to determine whether to perform a major, minor or patch increment on merge if [source code] changes have been made.  The following table provides the fragment that should be included in a commit message to active different increment strategies.
 
 | Increment Type | Commit Message Fragment                     |
-|----------------|---------------------------------------------|
+| -------------- | ------------------------------------------- |
 | major          | +semver:breaking                            |
 | major          | +semver:major                               |
 | minor          | +semver:feature                             |
@@ -181,7 +181,7 @@ This repo uses [git-version-lite] in its workflows to examine commit messages to
 
 ### Source Code Changes
 
-The files and directories that are considered source code are listed in the `files-with-code` and `dirs-with-code` arguments in both the [build-and-review-pr] and [increment-version-on-merge] workflows.  
+The files and directories that are considered source code are listed in the `files-with-code` and `dirs-with-code` arguments in both the [build-and-review-pr] and [increment-version-on-merge] workflows.
 
 If a PR contains source code changes, the README.md should be updated with the latest action version and the action should be recompiled.  The [build-and-review-pr] workflow will ensure these steps are performed when they are required.  The workflow will provide instructions for completing these steps if the PR Author does not initially complete them.
 

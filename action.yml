@@ -13,6 +13,7 @@ inputs:
     required: true
   repo:
     description: The repo the deployment will be created in.
+    required: true
   ref:
     description: The branch, tag or SHA that was deployed
     required: true
@@ -21,6 +22,7 @@ inputs:
     required: true
   deployment-message:
     description: Any message to be delivered along side of the status
+    required: false
   entities:
     description: The entities that are affected by the deployment, i.e. ["proj-app", "proj-infrastruction", "proj-db"]
     required: true
