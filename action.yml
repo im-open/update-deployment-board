@@ -3,51 +3,38 @@ description: Adds deployment Issues to an Automated Deployment Project Board for
 
 inputs:
   github-token:
-    description: 'A token with permissions to create and update issues'
-    required: true
-  github-login:
-    description: 'The login associated with the github-token.  Defaults to github-actions'
+    description: A token with permissions to create and update issues
     required: true
   environment:
-    description: 'The environment the branch, tag or SHA was deployed to'
+    description: The environment the branch, tag or SHA was deployed to, i.e. [DEV|QA|STAGE|DEMO|UAT|PROD]
     required: true
-  board-number:
-    description: 'The number of the project board that will be updated.  Found by using the number in the board url.'
+  owner:
+    description: The org or repo owner.
     required: true
+  repo:
+    description: The repo the deployment will be created in.
   ref:
-    description: 'The branch, tag or SHA that was deployed'
+    description: The branch, tag or SHA that was deployed
     required: true
-  ref-type:
-    description: 'The type of ref that was deployed  [branch|tag|sha].  If not provided the action will use some regex patterns to identify the type.'
-    required: false
-  deployable-type:
-    description: 'The type of artifact that was deployed like MFE, BFF, API, SVC, DB, etc.  Useful when a release with one tag contains multiple deployable artifacts that are deployed separately.'
-    required: false
   deploy-status:
-    description: 'The status of the deployment [success|failure|cancelled|skipped]'
+    description: The status of the deployment [error|failure|success]
     required: true
-  deploy-label:
-    description: 'The optional label of the deployment [deleted|destroyed|<your-custom-label>]'
-    required: false
-  enable-deployment-slot-tracking:
-    description: 'Enable App Service deployment slot tracking on deployment board? [true|false]'
-    required: false
-    default: 'false'
-  slot-swapped-with-production-slot:
-    description: 'Did this deployment swap slots with production slot? Set to true for swapping slot immediately with production slot. [true|false]'
-    required: false
-    default: 'false'
-  target-slot:
-    description: 'The target slot that was deployed to [production|blue|yellow|canary|red|loadtest|predeploy|your-custom-slot]'
-    required: false
-    default: 'production'
-  source-slot:
-    description: 'The source slot that was deployed to [production|blue|yellow|canary|red|loadtest|predeploy|your-custom-slot]'
-    required: false
-    default: 'production'
-  timezone:
-    description: 'IANA time zone name (e.g. America/Denver) to display dates in.  If timezone is not provided, dates will be shown in UTC'
-    required: false
+  deployment-message:
+    description: Any message to be delivered along side of the status
+  entities:
+    description: The entities that are affected by the deployment, i.e. ["proj-app", "proj-infrastruction", "proj-db"]
+    required: true
+  instance:
+    description: The target deployment server or app service and availability zone, i.e. "NA26", "NA26-slot1", "NA27-blue"
+    required: true
+  workflow-run-url:
+    description: The url of the workflow run, i.e."https://github.com/[owner]/[repo]/actions/runs/[workflow run id]"
+    required: true
+
+outputs:
+  github-deployment-id:
+    description: The id of the of the Git deployment.
+
 runs:
-  using: 'node16'
-  main: 'dist/index.js'
+  using: node16
+  main: dist/index.js
