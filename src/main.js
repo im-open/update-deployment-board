@@ -12,18 +12,19 @@ const owner = core.getInput('owner', requiredArgOptions);
 const repo = core.getInput('repo', requiredArgOptions);
 const ref = core.getInput('ref', requiredArgOptions);
 const deployStatus = core.getInput('deploy-status', requiredArgOptions);
-const deploymentMessage = core.getInput('deployment-message', requiredArgOptions);
-const entities = core.getInput('entities');
-const instance = core.getInput('instance');
+const deploymentMessage = core.getInput('deployment-message', { required: false, trimWhitespace: true });
+const entities = core.getInput('entities', requiredArgOptions);
+const instance = core.getInput('instance', requiredArgOptions);
 const workflow_run_url = core.getInput('workflow-run-url', requiredArgOptions);
 
-const octokit = new Octokit({ auth: ghToken });
-
 async function run() {
-  //create deployment record
-  const entitiesList = JSON.parse(entities.value.replace(/'/g, '"'))
+  const octokit = new Octokit({ auth: ghToken });
 
-  const deployment = await octokit.repo.createDeployment({
+  // create deployment record
+  core.info(`Entities: ${entities}`);
+  const entitiesList = JSON.parse(entities.replace(/'/g, '"'));
+
+  const deployment = await octokit.rest.repos.createDeployment({
     owner: owner,
     repo: repo,
     ref: ref,
@@ -33,17 +34,17 @@ async function run() {
     payload: {
       entities: entitiesList,
       instance: instance,
-      workflow_run_url: workflow_run_url,
-    },
+      workflow_run_url: workflow_run_url
+    }
   });
 
   //create deployment status record
-  const status = await octokit.repos.createDeploymentStatus({
+  const status = await octokit.rest.repos.createDeploymentStatus({
     owner: owner,
     repo: repo,
     deployment_id: deployment.id,
     state: deployStatus,
-    description: deploymentMessage,
+    description: deploymentMessage
   });
 
   //return deployment id

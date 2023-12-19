@@ -40,9 +40,9 @@ When the action runs it will add a deployment and deployment status record to th
 
 ## Outputs
 
-| Parameter            | Description                              |
-| -------------------- | ---------------------------------------- |
-| github-deployment-id | The GitHub id of the workflow deployment |
+| Parameter              | Description                              |
+| ---------------------- | ---------------------------------------- |
+| `github-deployment-id` | The GitHub id of the workflow deployment |
 
 ## Usage Examples
 
@@ -70,33 +70,28 @@ jobs:
         # Defaults to using github-actions for the login, regex matching to determine the ref-type and times shown in UTC
       - name: Update deployment board with Defaults
         id: defaults
-        continue-on-error: true                             # Setting to true so the job doesn't fail if updating the board fails.
-        uses: im-open/update-deployment-board@v1.7.0        # You may also reference just the major or major.minor version
+        continue-on-error: true                              # Setting to true so the job doesn't fail if updating the board fails.
+        uses: im-open/update-deployment-board@v1.7.0         # You may also reference just the major or major.minor version
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN}}          # If a different token is used, update github-login with the corresponding account
+          github-token: ${{ secrets.GITHUB_TOKEN}}           # If a different token is used, update github-login with the corresponding account
           environment: 'QA'
           board-number: 1
           ref: ${{ github.event.inputs.branchTagOrSha }}
-          deploy-status: ${{ steps.deploy-to-qa.outcome }}  # outcome is the result of the step before continue-on-error is applied
+          deploy-status: ${{ steps.deploy-to-qa.outcome }}   # outcome is the result of the step before continue-on-error is applied
 
       - name: Update deployment board with all values provided
         id: provided
-        continue-on-error: true                             # Setting to true so the job doesn't fail if updating the board fails.
+        continue-on-error: true                              # Setting to true so the job doesn't fail if updating the board fails.
         uses: im-open/update-deployment-board@v1.7.0
         with:
-          github-token: ${{ secrets.BOT_TOKEN}}             # Since a different token is used, the github-login should be set to the corresponding acct
-          github-login: 'my-bot'
+          github-token: ${{ secrets.BOT_TOKEN}}              # Since a different token is used, the github-login should be set to the corresponding acct
           environment: 'QA'
-          board-number: 1
+          owner: 'im-open'
+          repo: 'update-deployement-board'
           ref: 'feature-branch-16'
-          ref-type: 'branch'
-          deploy-status: ${{ steps.deploy-to-qa.outcome }}  # outcome is the result of the step before continue-on-error is applied
-          deploy-label: 'deleted' # Custom label to show status for slot deletion and terraform destroy deployments
-          enable-deployment-slot-tracking: true
-          slot-swapped-with-production-slot: true
-          target-slot: 'production'
-          source-slot: 'predeploy'
-          timezone: 'america/denver'
+          deploy-status: ${{ steps.deploy-to-qa.outcome }}   # outcome is the result of the step before continue-on-error is applied
+          deployment-message: 'This deployed as we expected' # An optional message that can be included to add information about the deployment
+          entities: ['update-deployment-board']
 
       - name: Update deployment board with app service slot deploy no swap
         id: provided
