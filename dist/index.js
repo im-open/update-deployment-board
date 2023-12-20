@@ -5293,13 +5293,7 @@ async function run() {
       workflow_run_url
     }
   });
-  const status = await octokit.rest.repos.createDeploymentStatus({
-    owner,
-    repo,
-    deployment_id: deployment.id,
-    state: deployStatus,
-    description: deploymentMessage
-  });
+  console.log('deployment id: ' + deployment.id);
   return deployment.id;
 }
 try {
