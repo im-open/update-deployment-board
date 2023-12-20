@@ -1,5 +1,5 @@
 const core = require('@actions/core');
-const { Octokit } = require('@octokit/actions');
+const { Octokit } = require('@octokit/rest');
 
 const requiredArgOptions = {
   required: true,
@@ -21,52 +21,41 @@ async function run() {
   // create deployment record
   const entitiesList = JSON.parse(entities.replace(/'/g, '"'));
 
-  const { data } = await octokit.request('POST /repos/{owner}/{repo}/developments', {
-    owner: owner,
-    repo: repo,
-    ref: ref,
-    auto_merge: false,
-    environment: environment,
-    task: 'workflowdeploy',
-    payload: {
-      entities: entitiesList,
-      instance: instance,
-      workflow_run_url: workflow_run_url
-    }
-  });
-
-  // const deployment = await octokit.rest.repos.createDeployment({
-  //   owner: owner,
-  //   repo: repo,
-  //   ref: ref,
-  //   auto_merge: false,
-  //   environment: environment,
-  //   task: 'workflowdeploy',
-  //   payload: {
-  //     entities: entitiesList,
-  //     instance: instance,
-  //     workflow_run_url: workflow_run_url
-  //   }
-  // });
+  const deployment = (
+    await octokit.rest.repos.createDeployment({
+      owner: owner,
+      repo: repo,
+      ref: ref,
+      auto_merge: false,
+      environment: environment,
+      task: 'workflowdeploy',
+      payload: {
+        entities: entitiesList,
+        instance: instance,
+        workflow_run_url: workflow_run_url
+      }
+    })
+  ).data;
 
   // console.log('deployment id: ' + deployment.id);
-  console.log('deployment id: ' + data.id);
+  console.log('deployment id: ' + deployment.id);
 
   //create deployment status record
-  // const status = await octokit.rest.repos.createDeploymentStatus({
-  //   owner: owner,
-  //   repo: repo,
-  //   deployment_id: deployment.id,
-  //   state: deployStatus,
-  //   description: deploymentMessage
-  // });
+  const status = await octokit.rest.repos.createDeploymentStatus({
+    owner: owner,
+    repo: repo,
+    deployment_id: deployment.id,
+    state: deployStatus,
+    description: deploymentMessage
+  });
 
   //return deployment id
-  return data.id;
+  return deployment.id;
 }
 
 try {
-  core.exportVariable('github-deployment-id', run());
+  const runPromise = new Promise((resolve, reject) => resolve(run()));
+  runPromise.then(deploymentId => core.setOutput('github-deployment-id', deploymentId));
 } catch (error) {
   //Anything that shows up here should be a re-thrown error where the detailed error was already logged.
   //We can set a generic failure message because the more detailed one should already have been logged.

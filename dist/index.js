@@ -2367,7 +2367,7 @@ var require_dist_node = __commonJS({
       if (typeof navigator === 'object' && 'userAgent' in navigator) {
         return navigator.userAgent;
       }
-      if (typeof process === 'object' && 'version' in process) {
+      if (typeof process === 'object' && process.version !== void 0) {
         return `Node.js/${process.version.substr(1)} (${process.platform}; ${process.arch})`;
       }
       return '<environment undetectable>';
@@ -2523,9 +2523,9 @@ var require_before_after_hook = __commonJS({
   }
 });
 
-// node_modules/@octokit/rest/node_modules/@octokit/endpoint/dist-node/index.js
+// node_modules/@octokit/endpoint/dist-node/index.js
 var require_dist_node2 = __commonJS({
-  'node_modules/@octokit/rest/node_modules/@octokit/endpoint/dist-node/index.js'(exports2, module2) {
+  'node_modules/@octokit/endpoint/dist-node/index.js'(exports2, module2) {
     'use strict';
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -2952,9 +2952,9 @@ var require_once = __commonJS({
   }
 });
 
-// node_modules/@octokit/rest/node_modules/@octokit/request-error/dist-node/index.js
+// node_modules/@octokit/request-error/dist-node/index.js
 var require_dist_node4 = __commonJS({
-  'node_modules/@octokit/rest/node_modules/@octokit/request-error/dist-node/index.js'(exports2, module2) {
+  'node_modules/@octokit/request-error/dist-node/index.js'(exports2, module2) {
     'use strict';
     var __create2 = Object.create;
     var __defProp2 = Object.defineProperty;
@@ -3039,9 +3039,9 @@ var require_dist_node4 = __commonJS({
   }
 });
 
-// node_modules/@octokit/rest/node_modules/@octokit/request/dist-node/index.js
+// node_modules/@octokit/request/dist-node/index.js
 var require_dist_node5 = __commonJS({
-  'node_modules/@octokit/rest/node_modules/@octokit/request/dist-node/index.js'(exports2, module2) {
+  'node_modules/@octokit/request/dist-node/index.js'(exports2, module2) {
     'use strict';
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -3241,9 +3241,9 @@ var require_dist_node5 = __commonJS({
   }
 });
 
-// node_modules/@octokit/rest/node_modules/@octokit/graphql/dist-node/index.js
+// node_modules/@octokit/graphql/dist-node/index.js
 var require_dist_node6 = __commonJS({
-  'node_modules/@octokit/rest/node_modules/@octokit/graphql/dist-node/index.js'(exports2, module2) {
+  'node_modules/@octokit/graphql/dist-node/index.js'(exports2, module2) {
     'use strict';
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -3359,9 +3359,9 @@ var require_dist_node6 = __commonJS({
   }
 });
 
-// node_modules/@octokit/rest/node_modules/@octokit/auth-token/dist-node/index.js
+// node_modules/@octokit/auth-token/dist-node/index.js
 var require_dist_node7 = __commonJS({
-  'node_modules/@octokit/rest/node_modules/@octokit/auth-token/dist-node/index.js'(exports2, module2) {
+  'node_modules/@octokit/auth-token/dist-node/index.js'(exports2, module2) {
     'use strict';
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -3424,9 +3424,9 @@ var require_dist_node7 = __commonJS({
   }
 });
 
-// node_modules/@octokit/rest/node_modules/@octokit/core/dist-node/index.js
+// node_modules/@octokit/core/dist-node/index.js
 var require_dist_node8 = __commonJS({
-  'node_modules/@octokit/rest/node_modules/@octokit/core/dist-node/index.js'(exports2, module2) {
+  'node_modules/@octokit/core/dist-node/index.js'(exports2, module2) {
     'use strict';
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -3581,9 +3581,9 @@ var require_dist_node8 = __commonJS({
   }
 });
 
-// node_modules/@octokit/rest/node_modules/@octokit/plugin-request-log/dist-node/index.js
+// node_modules/@octokit/plugin-request-log/dist-node/index.js
 var require_dist_node9 = __commonJS({
-  'node_modules/@octokit/rest/node_modules/@octokit/plugin-request-log/dist-node/index.js'(exports2, module2) {
+  'node_modules/@octokit/plugin-request-log/dist-node/index.js'(exports2, module2) {
     'use strict';
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -3607,19 +3607,19 @@ var require_dist_node9 = __commonJS({
     });
     module2.exports = __toCommonJS2(dist_src_exports);
     var VERSION = '4.0.0';
-    function requestLog(octokit) {
-      octokit.hook.wrap('request', (request, options) => {
-        octokit.log.debug('request', options);
+    function requestLog(octokit2) {
+      octokit2.hook.wrap('request', (request, options) => {
+        octokit2.log.debug('request', options);
         const start = Date.now();
-        const requestOptions = octokit.request.endpoint.parse(options);
+        const requestOptions = octokit2.request.endpoint.parse(options);
         const path = requestOptions.url.replace(options.baseUrl, '');
         return request(options)
           .then(response => {
-            octokit.log.info(`${requestOptions.method} ${path} - ${response.status} in ${Date.now() - start}ms`);
+            octokit2.log.info(`${requestOptions.method} ${path} - ${response.status} in ${Date.now() - start}ms`);
             return response;
           })
           .catch(error => {
-            octokit.log.info(`${requestOptions.method} ${path} - ${error.status} in ${Date.now() - start}ms`);
+            octokit2.log.info(`${requestOptions.method} ${path} - ${error.status} in ${Date.now() - start}ms`);
             throw error;
           });
       });
@@ -3628,9 +3628,9 @@ var require_dist_node9 = __commonJS({
   }
 });
 
-// node_modules/@octokit/rest/node_modules/@octokit/plugin-paginate-rest/dist-node/index.js
+// node_modules/@octokit/plugin-paginate-rest/dist-node/index.js
 var require_dist_node10 = __commonJS({
-  'node_modules/@octokit/rest/node_modules/@octokit/plugin-paginate-rest/dist-node/index.js'(exports2, module2) {
+  'node_modules/@octokit/plugin-paginate-rest/dist-node/index.js'(exports2, module2) {
     'use strict';
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -3684,9 +3684,9 @@ var require_dist_node10 = __commonJS({
       response.data.total_count = totalCount;
       return response;
     }
-    function iterator(octokit, route, parameters) {
-      const options = typeof route === 'function' ? route.endpoint(parameters) : octokit.request.endpoint(route, parameters);
-      const requestMethod = typeof route === 'function' ? route : octokit.request;
+    function iterator(octokit2, route, parameters) {
+      const options = typeof route === 'function' ? route.endpoint(parameters) : octokit2.request.endpoint(route, parameters);
+      const requestMethod = typeof route === 'function' ? route : octokit2.request;
       const method = options.method;
       const headers = options.headers;
       let url = options.url;
@@ -3714,14 +3714,14 @@ var require_dist_node10 = __commonJS({
         })
       };
     }
-    function paginate(octokit, route, parameters, mapFn) {
+    function paginate(octokit2, route, parameters, mapFn) {
       if (typeof parameters === 'function') {
         mapFn = parameters;
         parameters = void 0;
       }
-      return gather(octokit, [], iterator(octokit, route, parameters)[Symbol.asyncIterator](), mapFn);
+      return gather(octokit2, [], iterator(octokit2, route, parameters)[Symbol.asyncIterator](), mapFn);
     }
-    function gather(octokit, results, iterator2, mapFn) {
+    function gather(octokit2, results, iterator2, mapFn) {
       return iterator2.next().then(result => {
         if (result.done) {
           return results;
@@ -3734,7 +3734,7 @@ var require_dist_node10 = __commonJS({
         if (earlyExit) {
           return results;
         }
-        return gather(octokit, results, iterator2, mapFn);
+        return gather(octokit2, results, iterator2, mapFn);
       });
     }
     var composePaginateRest = Object.assign(paginate, {
@@ -3981,10 +3981,10 @@ var require_dist_node10 = __commonJS({
         return false;
       }
     }
-    function paginateRest(octokit) {
+    function paginateRest(octokit2) {
       return {
-        paginate: Object.assign(paginate.bind(null, octokit), {
-          iterator: iterator.bind(null, octokit)
+        paginate: Object.assign(paginate.bind(null, octokit2), {
+          iterator: iterator.bind(null, octokit2)
         })
       };
     }
@@ -3992,9 +3992,9 @@ var require_dist_node10 = __commonJS({
   }
 });
 
-// node_modules/@octokit/rest/node_modules/@octokit/plugin-rest-endpoint-methods/dist-node/index.js
+// node_modules/@octokit/plugin-rest-endpoint-methods/dist-node/index.js
 var require_dist_node11 = __commonJS({
-  'node_modules/@octokit/rest/node_modules/@octokit/plugin-rest-endpoint-methods/dist-node/index.js'(exports2, module2) {
+  'node_modules/@octokit/plugin-rest-endpoint-methods/dist-node/index.js'(exports2, module2) {
     'use strict';
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -5142,7 +5142,7 @@ var require_dist_node11 = __commonJS({
       set(target, methodName, value) {
         return (target.cache[methodName] = value);
       },
-      get({ octokit, scope, cache }, methodName) {
+      get({ octokit: octokit2, scope, cache }, methodName) {
         if (cache[methodName]) {
           return cache[methodName];
         }
@@ -5152,22 +5152,22 @@ var require_dist_node11 = __commonJS({
         }
         const { endpointDefaults, decorations } = method;
         if (decorations) {
-          cache[methodName] = decorate(octokit, scope, methodName, endpointDefaults, decorations);
+          cache[methodName] = decorate(octokit2, scope, methodName, endpointDefaults, decorations);
         } else {
-          cache[methodName] = octokit.request.defaults(endpointDefaults);
+          cache[methodName] = octokit2.request.defaults(endpointDefaults);
         }
         return cache[methodName];
       }
     };
-    function endpointsToMethods(octokit) {
+    function endpointsToMethods(octokit2) {
       const newMethods = {};
       for (const scope of endpointMethodsMap.keys()) {
-        newMethods[scope] = new Proxy({ octokit, scope, cache: {} }, handler);
+        newMethods[scope] = new Proxy({ octokit: octokit2, scope, cache: {} }, handler);
       }
       return newMethods;
     }
-    function decorate(octokit, scope, methodName, defaults, decorations) {
-      const requestWithDefaults = octokit.request.defaults(defaults);
+    function decorate(octokit2, scope, methodName, defaults, decorations) {
+      const requestWithDefaults = octokit2.request.defaults(defaults);
       function withDecorations(...args) {
         let options = requestWithDefaults.endpoint.merge(...args);
         if (decorations.mapToData) {
@@ -5179,16 +5179,16 @@ var require_dist_node11 = __commonJS({
         }
         if (decorations.renamed) {
           const [newScope, newMethodName] = decorations.renamed;
-          octokit.log.warn(`octokit.${scope}.${methodName}() has been renamed to octokit.${newScope}.${newMethodName}()`);
+          octokit2.log.warn(`octokit.${scope}.${methodName}() has been renamed to octokit.${newScope}.${newMethodName}()`);
         }
         if (decorations.deprecated) {
-          octokit.log.warn(decorations.deprecated);
+          octokit2.log.warn(decorations.deprecated);
         }
         if (decorations.renamedParameters) {
           const options2 = requestWithDefaults.endpoint.merge(...args);
           for (const [name, alias] of Object.entries(decorations.renamedParameters)) {
             if (name in options2) {
-              octokit.log.warn(`"${name}" parameter is deprecated for "octokit.${scope}.${methodName}()". Use "${alias}" instead`);
+              octokit2.log.warn(`"${name}" parameter is deprecated for "octokit.${scope}.${methodName}()". Use "${alias}" instead`);
               if (!(alias in options2)) {
                 options2[alias] = options2[name];
               }
@@ -5201,15 +5201,15 @@ var require_dist_node11 = __commonJS({
       }
       return Object.assign(withDecorations, requestWithDefaults);
     }
-    function restEndpointMethods(octokit) {
-      const api = endpointsToMethods(octokit);
+    function restEndpointMethods(octokit2) {
+      const api = endpointsToMethods(octokit2);
       return {
         rest: api
       };
     }
     restEndpointMethods.VERSION = VERSION;
-    function legacyRestEndpointMethods(octokit) {
-      const api = endpointsToMethods(octokit);
+    function legacyRestEndpointMethods(octokit2) {
+      const api = endpointsToMethods(octokit2);
       return {
         ...api,
         rest: api
@@ -5275,29 +5275,37 @@ var deploymentMessage = core.getInput('deployment-message', { required: false, t
 var entities = core.getInput('entities', requiredArgOptions);
 var instance = core.getInput('instance', requiredArgOptions);
 var workflow_run_url = core.getInput('workflow-run-url', requiredArgOptions);
+var octokit = new Octokit({ auth: ghToken });
 async function run() {
-  const octokit = new Octokit({
-    auth: ghToken
-  });
   const entitiesList = JSON.parse(entities.replace(/'/g, '"'));
-  const deployment = await octokit.rest.repos.createDeployment({
+  const deployment = (
+    await octokit.rest.repos.createDeployment({
+      owner,
+      repo,
+      ref,
+      auto_merge: false,
+      environment,
+      task: 'workflowdeploy',
+      payload: {
+        entities: entitiesList,
+        instance,
+        workflow_run_url
+      }
+    })
+  ).data;
+  console.log('deployment id: ' + deployment.id);
+  const status = await octokit.rest.repos.createDeploymentStatus({
     owner,
     repo,
-    ref,
-    auto_merge: false,
-    environment,
-    task: 'workflowdeploy',
-    payload: {
-      entities: entitiesList,
-      instance,
-      workflow_run_url
-    }
+    deployment_id: deployment.id,
+    state: deployStatus,
+    description: deploymentMessage
   });
-  console.log('deployment id: ' + deployment.id);
   return deployment.id;
 }
 try {
-  core.exportVariable('github-deployment-id', run());
+  const runPromise = new Promise((resolve, reject) => resolve(run()));
+  runPromise.then(deploymentId => core.setOutput('github-deployment-id', deploymentId));
 } catch (error) {
   core.setFailed('An error occurred creating a GitHub deployment.');
   return;
