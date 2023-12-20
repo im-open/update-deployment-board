@@ -18,8 +18,7 @@
     "@octokit/rest": "^20.0.2",
     "axios": "^0.24.0",
     "date-fns": "^2.22.1",
-    "date-fns-tz": "^1.1.4",
-    "node-fetch": "^3.3.2"
+    "date-fns-tz": "^1.1.4"
   },
   "devDependencies": {
     "esbuild": "^v0.19.10",

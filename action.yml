@@ -38,5 +38,5 @@ outputs:
     description: The id of the of the Git deployment.
 
 runs:
-  using: node16
+  using: node20
   main: dist/index.js
