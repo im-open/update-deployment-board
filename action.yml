@@ -9,7 +9,7 @@ inputs:
     description: The environment the branch, tag or SHA was deployed to, i.e. [DEV|QA|STAGE|DEMO|UAT|PROD]
     required: true
   project-slug:
-    description: The repo the deployment will be created in, i.e. org/repo
+    description: The repo the deployment will be created in, i.e. [org|owner]/[repo name]
     required: true
   ref:
     description: The branch, tag or SHA that was deployed

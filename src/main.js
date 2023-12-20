@@ -37,6 +37,8 @@ async function run() {
     }
   });
 
+  console.log('deployment id: ' + deployment.id);
+
   //create deployment status record
   const status = await octokit.rest.repos.createDeploymentStatus({
     owner: owner,
