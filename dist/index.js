@@ -5268,8 +5268,7 @@ var requiredArgOptions = {
 };
 var ghToken = core.getInput('github-token', requiredArgOptions);
 var environment = core.getInput('environment', requiredArgOptions);
-var owner = core.getInput('owner', requiredArgOptions);
-var repo = core.getInput('repo', requiredArgOptions);
+var [owner, repo] = core.getInput('project-slug', requiredArgOptions).split('/');
 var ref = core.getInput('ref', requiredArgOptions);
 var deployStatus = core.getInput('deploy-status', requiredArgOptions);
 var deploymentMessage = core.getInput('deployment-message', { required: false, trimWhitespace: true });
@@ -5280,7 +5279,6 @@ async function run() {
   const octokit = new Octokit({
     auth: ghToken
   });
-  core.info(`Entities: ${entities}`);
   const entitiesList = JSON.parse(entities.replace(/'/g, '"'));
   const deployment = await octokit.rest.repos.createDeployment({
     owner,

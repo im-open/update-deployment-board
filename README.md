@@ -71,7 +71,7 @@ jobs:
       - name: Update deployment board with Defaults
         id: defaults
         continue-on-error: true                              # Setting to true so the job doesn't fail if updating the board fails.
-        uses: im-open/update-deployment-board@v1.7.0         # You may also reference just the major or major.minor version
+        uses: im-open/update-deployment-board@v2.0.0         # You may also reference just the major or major.minor version
         with:
           github-token: ${{ secrets.GITHUB_TOKEN}}           # If a different token is used, update github-login with the corresponding account
           environment: 'QA'
@@ -82,7 +82,7 @@ jobs:
       - name: Update deployment board with all values provided
         id: provided
         continue-on-error: true                              # Setting to true so the job doesn't fail if updating the board fails.
-        uses: im-open/update-deployment-board@v1.7.0
+        uses: im-open/update-deployment-board@v2.0.0
         with:
           github-token: ${{ secrets.BOT_TOKEN}}              # Since a different token is used, the github-login should be set to the corresponding acct
           environment: 'QA'
@@ -96,7 +96,7 @@ jobs:
       - name: Update deployment board with app service slot deploy no swap
         id: provided
         continue-on-error: true                             # Setting to true so the job doesn't fail if updating the board fails.
-        uses: im-open/update-deployment-board@v1.7.0
+        uses: im-open/update-deployment-board@v2.0.0
         with:
           github-token: ${{ secrets.BOT_TOKEN}}             # Since a different token is used, the github-login should be set to the corresponding acct
           github-login: 'my-bot'
@@ -114,7 +114,7 @@ jobs:
       - name: Update deployment board with app service slot deploy with swap
         id: provided
         continue-on-error: true                             # Setting to true so the job doesn't fail if updating the board fails.
-        uses: im-open/update-deployment-board@v1.7.0
+        uses: im-open/update-deployment-board@v2.0.0
         with:
           github-token: ${{ secrets.BOT_TOKEN}}             # Since a different token is used, the github-login should be set to the corresponding acct
           github-login: 'my-bot'
@@ -132,7 +132,7 @@ jobs:
       - name: Update deployment board with app service slot delete
         id: provided
         continue-on-error: true                             # Setting to true so the job doesn't fail if updating the board fails.
-        uses: im-open/update-deployment-board@v1.7.0
+        uses: im-open/update-deployment-board@v2.0.0
         with:
           github-token: ${{ secrets.BOT_TOKEN}}             # Since a different token is used, the github-login should be set to the corresponding acct
           github-login: 'my-bot'

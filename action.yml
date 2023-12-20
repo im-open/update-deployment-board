@@ -8,11 +8,8 @@ inputs:
   environment:
     description: The environment the branch, tag or SHA was deployed to, i.e. [DEV|QA|STAGE|DEMO|UAT|PROD]
     required: true
-  owner:
-    description: The org or repo owner.
-    required: true
-  repo:
-    description: The repo the deployment will be created in.
+  project-slug:
+    description: The repo the deployment will be created in, i.e. org/repo
     required: true
   ref:
     description: The branch, tag or SHA that was deployed

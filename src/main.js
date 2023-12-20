@@ -8,8 +8,7 @@ const requiredArgOptions = {
 
 const ghToken = core.getInput('github-token', requiredArgOptions);
 const environment = core.getInput('environment', requiredArgOptions);
-const owner = core.getInput('owner', requiredArgOptions);
-const repo = core.getInput('repo', requiredArgOptions);
+const [owner, repo] = core.getInput('project-slug', requiredArgOptions).split('/');
 const ref = core.getInput('ref', requiredArgOptions);
 const deployStatus = core.getInput('deploy-status', requiredArgOptions);
 const deploymentMessage = core.getInput('deployment-message', { required: false, trimWhitespace: true });
@@ -23,9 +22,7 @@ async function run() {
   });
 
   // create deployment record
-  core.info(`Entities: ${entities}`);
   const entitiesList = JSON.parse(entities.replace(/'/g, '"'));
-
   const deployment = await octokit.rest.repos.createDeployment({
     owner: owner,
     repo: repo,
