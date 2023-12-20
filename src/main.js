@@ -1,5 +1,5 @@
 const core = require('@actions/core');
-const github = require('@actions/github');
+const { Octokit } = require('@octokit/actions');
 
 const requiredArgOptions = {
   required: true,
@@ -15,7 +15,7 @@ const deploymentMessage = core.getInput('deployment-message', { required: false,
 const entities = core.getInput('entities', requiredArgOptions);
 const instance = core.getInput('instance', requiredArgOptions);
 const workflow_run_url = core.getInput('workflow-run-url', requiredArgOptions);
-const octokit = github.getOctokit(ghToken);
+const octokit = new Octokit({ auth: ghToken });
 
 async function run() {
   // create deployment record
