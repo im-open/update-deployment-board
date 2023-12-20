@@ -1,5 +1,6 @@
 const core = require('@actions/core');
 const { Octokit } = require('@octokit/rest');
+const { fetch } = require('node-fetch');
 
 const requiredArgOptions = {
   required: true,
@@ -18,7 +19,12 @@ const instance = core.getInput('instance', requiredArgOptions);
 const workflow_run_url = core.getInput('workflow-run-url', requiredArgOptions);
 
 async function run() {
-  const octokit = new Octokit({ auth: ghToken });
+  const octokit = new Octokit({
+    auth: ghToken,
+    request: {
+      fetch: fetch
+    }
+  });
 
   // create deployment record
   core.info(`Entities: ${entities}`);
