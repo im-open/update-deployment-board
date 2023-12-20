@@ -20,7 +20,8 @@ const octokit = new Octokit({ auth: ghToken });
 async function run() {
   // create deployment record
   const entitiesList = JSON.parse(entities.replace(/'/g, '"'));
-  const deployment = await octokit.rest.repos.createDeployment({
+
+  const { data } = await octokit.request('POST /repos/{owner}/{repo}/developments', {
     owner: owner,
     repo: repo,
     ref: ref,
@@ -34,7 +35,22 @@ async function run() {
     }
   });
 
-  console.log('deployment id: ' + deployment.id);
+  // const deployment = await octokit.rest.repos.createDeployment({
+  //   owner: owner,
+  //   repo: repo,
+  //   ref: ref,
+  //   auto_merge: false,
+  //   environment: environment,
+  //   task: 'workflowdeploy',
+  //   payload: {
+  //     entities: entitiesList,
+  //     instance: instance,
+  //     workflow_run_url: workflow_run_url
+  //   }
+  // });
+
+  // console.log('deployment id: ' + deployment.id);
+  console.log('deployment id: ' + data.id);
 
   //create deployment status record
   // const status = await octokit.rest.repos.createDeploymentStatus({
@@ -46,7 +62,7 @@ async function run() {
   // });
 
   //return deployment id
-  return deployment.id;
+  return data.id;
 }
 
 try {
