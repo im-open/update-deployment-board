@@ -5293,7 +5293,6 @@ async function run() {
       }
     })
   ).data;
-  console.log('deployment id: ' + deployment.id);
   const status = await octokit.rest.repos.createDeploymentStatus({
     owner,
     repo,

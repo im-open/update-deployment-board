@@ -1,17 +1,12 @@
 # update-deployment-board
 
-This action creates a visual representation of deployments on a Project board in your GitHub repository.  When this action is included in a workflow that does a deployment it will generate or update an existing issue and include it on the specified project board.
-
-## DEPRECATION NOTICE
-
-This action was implemented as a visual way to represent our deployments and we looked forward to GitHub creating a native feature that represented deployments to environments more accurately than just reporting which GitHub environments had been accessed.  The initial work used GitHub Projects which are now considered Classic Projects.  The API this action utilizes is not compatible with the new Issues and Projects so this action will be deprecated in the near future.  We haven't found a suitable alternative within GitHub so our focus will be on an external solution at this time.
+This action creates GitHub Deployment and Deployment Status records.  It can be used in conjuction with tooling that read GitHub deployments and see the disposition of deployments.
 
 ## Index <!-- omit in toc -->
 
-- [DEPRECATION NOTICE](#deprecation-notice)
 - [Inputs](#inputs)
 - [Outputs](#outputs)
-- [Usage Examples](#usage-examples)
+- [Usage Example](#usage-example)
 - [Contributing](#contributing)
   - [Incrementing the Version](#incrementing-the-version)
   - [Source Code Changes](#source-code-changes)
@@ -29,8 +24,7 @@ When the action runs it will add a deployment and deployment status record to th
 | -------------------- | ----------- | --------------------------------------------------------------------------------------------------------- |
 | `github-token`       | true        | A token with permissions to create and update issues                                                      |
 | `environment`        | true        | The environment the branch, tag or SHA was deployed to, i.e. [DEV\|QA\|STAGE\|DEMO\|UAT\|PROD]            |
-| `owner`              | true        | The org or repo owner.                                                                                    |
-| `repo`               | true        | The repo the deployment will be created in.                                                               |
+| `project-slug`       | true        | The repo the deployment will be created in, i.e. [org\|owner]/[repo name]                                 |
 | `ref`                | true        | The branch, tag or SHA that was deployed                                                                  |
 | `deploy-status`      | true        | The status of the deployment [error\|failure\|success]                                                    |
 | `deployment-message` | false       | Any message to be delivered along side of the status                                                      |
@@ -44,7 +38,7 @@ When the action runs it will add a deployment and deployment status record to th
 | ---------------------- | ---------------------------------------- |
 | `github-deployment-id` | The GitHub id of the workflow deployment |
 
-## Usage Examples
+## Usage Example
 
 ```yml
 name: Manually Deploy to QA
@@ -70,83 +64,18 @@ jobs:
         # Defaults to using github-actions for the login, regex matching to determine the ref-type and times shown in UTC
       - name: Update deployment board with Defaults
         id: defaults
-        continue-on-error: true                              # Setting to true so the job doesn't fail if updating the board fails.
-        uses: im-open/update-deployment-board@v2.0.0         # You may also reference just the major or major.minor version
+        continue-on-error: true                                  # Setting to true so the job doesn't fail if updating the board fails.
+        uses: im-open/update-deployment-board@v2.0.0             # You may also reference just the major or major.minor version
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN}}           # If a different token is used, update github-login with the corresponding account
+          github-token: ${{ secrets.GITHUB_TOKEN }}              # If a different token is used, update github-login with the corresponding account
           environment: 'QA'
-          board-number: 1
+          project-slug: ${{ github.repository }}                 # Expects [org|owner]/[repo name]
           ref: ${{ github.event.inputs.branchTagOrSha }}
-          deploy-status: ${{ steps.deploy-to-qa.outcome }}   # outcome is the result of the step before continue-on-error is applied
-
-      - name: Update deployment board with all values provided
-        id: provided
-        continue-on-error: true                              # Setting to true so the job doesn't fail if updating the board fails.
-        uses: im-open/update-deployment-board@v2.0.0
-        with:
-          github-token: ${{ secrets.BOT_TOKEN}}              # Since a different token is used, the github-login should be set to the corresponding acct
-          environment: 'QA'
-          owner: 'im-open'
-          repo: 'update-deployement-board'
-          ref: 'feature-branch-16'
-          deploy-status: ${{ steps.deploy-to-qa.outcome }}   # outcome is the result of the step before continue-on-error is applied
-          deployment-message: 'This deployed as we expected' # An optional message that can be included to add information about the deployment
-          entities: ['update-deployment-board']
-
-      - name: Update deployment board with app service slot deploy no swap
-        id: provided
-        continue-on-error: true                             # Setting to true so the job doesn't fail if updating the board fails.
-        uses: im-open/update-deployment-board@v2.0.0
-        with:
-          github-token: ${{ secrets.BOT_TOKEN}}             # Since a different token is used, the github-login should be set to the corresponding acct
-          github-login: 'my-bot'
-          environment: 'QA'
-          board-number: 1
-          ref: 'feature-branch-16'
-          ref-type: 'branch'
-          deploy-status: ${{ steps.deploy-to-qa.outcome }}  # outcome is the result of the step before continue-on-error is applied
-          enable-deployment-slot-tracking: true
-          slot-swapped-with-production-slot: false
-          target-slot: 'predeploy'
-          source-slot: 'predeploy'
-          timezone: 'america/denver'
-
-      - name: Update deployment board with app service slot deploy with swap
-        id: provided
-        continue-on-error: true                             # Setting to true so the job doesn't fail if updating the board fails.
-        uses: im-open/update-deployment-board@v2.0.0
-        with:
-          github-token: ${{ secrets.BOT_TOKEN}}             # Since a different token is used, the github-login should be set to the corresponding acct
-          github-login: 'my-bot'
-          environment: 'QA'
-          board-number: 1
-          ref: 'feature-branch-16'
-          ref-type: 'branch'
-          deploy-status: ${{ steps.deploy-to-qa.outcome }}  # outcome is the result of the step before continue-on-error is applied
-          enable-deployment-slot-tracking: true
-          slot-swapped-with-production-slot: true
-          target-slot: 'production'
-          source-slot: 'predeploy'
-          timezone: 'america/denver'
-
-      - name: Update deployment board with app service slot delete
-        id: provided
-        continue-on-error: true                             # Setting to true so the job doesn't fail if updating the board fails.
-        uses: im-open/update-deployment-board@v2.0.0
-        with:
-          github-token: ${{ secrets.BOT_TOKEN}}             # Since a different token is used, the github-login should be set to the corresponding acct
-          github-login: 'my-bot'
-          environment: 'QA'
-          board-number: 1
-          ref: 'feature-branch-16'
-          ref-type: 'branch'
-          deploy-status: ${{ steps.deploy-to-qa.outcome }}  # outcome is the result of the step before continue-on-error is applied
-          deploy-label: 'deleted' # Custom label to show status for slot deletion and terraform destroy deployments
-          enable-deployment-slot-tracking: true
-          slot-swapped-with-production-slot: false
-          target-slot: 'blue'
-          source-slot: 'blue'
-          timezone: 'america/denver'
+          deploy-status: ${{ steps.deploy-to-qa.outcome }}       # outcome is the result of the step before continue-on-error is applied, i.e. [error|failure|success]
+          deployment-message: ${{ steps.deploy-to-qa.outcome }}  # information that may add supporting information to the status/result
+          entities: '["tech-hub-git-hub-deployments-experiment"]'
+          instance: ${{ inputs.instance }}
+          workflow-run-url: '${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}'
 
       - name: Now Fail the job if the deploy step failed
         if: steps.deploy-to-qa.outcome == 'failure'
