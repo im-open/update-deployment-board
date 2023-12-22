@@ -1,6 +1,16 @@
 # update-deployment-board
 
-This action creates GitHub Deployment and Deployment Status records.  It can be used in conjuction with tooling that read GitHub deployments and see the disposition of deployments.
+This action creates GitHub Deployment and Deployment Status records.  It can be used in conjunction with tooling that reads GitHub deployments and deployment statuses to see the disposition of deployments.  This action defaults the `deployment.task` to `workflowdeploy`, but can be changed if different task values are needed.
+
+The `deployment.payload` is customized to have these values included:
+```json
+payload: {
+  workflow_actor: <<workflow-actor>>,
+  entities: <<entities-list>>,
+  instance: <<instance>>,
+  workflow_run_url: <<workflow-run-url>>
+}
+```
 
 ## Index <!-- omit in toc -->
 
@@ -15,14 +25,14 @@ This action creates GitHub Deployment and Deployment Status records.  It can be 
 - [Code of Conduct](#code-of-conduct)
 - [License](#license)
 
-
-When the action runs it will add a deployment and deployment status record to the repo.
+When the action runs it will add a deployment and deployment status record to the repo.  The GitHub Deployment will also have a special task d
 
 ## Inputs
 
 | Parameter            | Is Required | Description                                                                                               |
 | -------------------- | ----------- | --------------------------------------------------------------------------------------------------------- |
-| `github-token`       | true        | A token with permissions to create and update issues                                                      |
+| `workflow-actor`     | true        | The GitHub user who triggered the workflow                                                                |
+| `token`              | true        | A GitHub token with permissions to create and update issues                                               |
 | `environment`        | true        | The environment the branch, tag or SHA was deployed to, i.e. [DEV\|QA\|STAGE\|DEMO\|UAT\|PROD]            |
 | `project-slug`       | true        | The repo the deployment will be created in, i.e. [org\|owner]/[repo name]                                 |
 | `ref`                | true        | The branch, tag or SHA that was deployed                                                                  |
@@ -31,6 +41,7 @@ When the action runs it will add a deployment and deployment status record to th
 | `entities`           | true        | The entities that are affected by the deployment, i.e. ["proj-app", "proj-infrastruction", "proj-db"]     |
 | `instance`           | true        | The target deployment server or app service and availability zone, i.e. "NA26", "NA26-slot1", "NA27-blue" |
 | `workflow-run-url`   | true        | The url of the workflow run, i.e."https://github.com/[owner]/[repo]/actions/runs/[workflow run id]"       |
+| `workflow-task`      | false       | The task designation for the deployment, defaults to `workflowdeploy`                                     |
 
 ## Outputs
 
@@ -67,7 +78,8 @@ jobs:
         continue-on-error: true                                  # Setting to true so the job doesn't fail if updating the board fails.
         uses: im-open/update-deployment-board@v2.0.0             # You may also reference just the major or major.minor version
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}              # If a different token is used, update github-login with the corresponding account
+          workflow-actor: ${{ github.actor }}             # This will add the user who kicked off the workflow to the deployment payload
+          token: ${{ secrets.GITHUB_TOKEN }}              # If a different token is used, update github-login with the corresponding account
           environment: 'QA'
           project-slug: ${{ github.repository }}                 # Expects [org|owner]/[repo name]
           ref: ${{ github.event.inputs.branchTagOrSha }}
@@ -76,6 +88,7 @@ jobs:
           entities: '["tech-hub-git-hub-deployments-experiment"]'
           instance: ${{ inputs.instance }}
           workflow-run-url: '${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}'
+          #workflow-task: 'workflowdeploy'                        # defaults to workflowdeploy
 
       - name: Now Fail the job if the deploy step failed
         if: steps.deploy-to-qa.outcome == 'failure'

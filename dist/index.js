@@ -1562,8 +1562,8 @@ var require_auth = __commonJS({
     };
     exports2.BasicCredentialHandler = BasicCredentialHandler;
     var BearerCredentialHandler = class {
-      constructor(token) {
-        this.token = token;
+      constructor(token2) {
+        this.token = token2;
       }
       // currently implements pre-authorization
       // TODO: support preAuth = false where it hooks on 401
@@ -1585,8 +1585,8 @@ var require_auth = __commonJS({
     };
     exports2.BearerCredentialHandler = BearerCredentialHandler;
     var PersonalAccessTokenCredentialHandler = class {
-      constructor(token) {
-        this.token = token;
+      constructor(token2) {
+        this.token = token2;
       }
       // currently implements pre-authorization
       // TODO: support preAuth = false where it hooks on 401
@@ -1663,11 +1663,11 @@ var require_oidc_utils = __commonJS({
         );
       }
       static getRequestToken() {
-        const token = process.env['ACTIONS_ID_TOKEN_REQUEST_TOKEN'];
-        if (!token) {
+        const token2 = process.env['ACTIONS_ID_TOKEN_REQUEST_TOKEN'];
+        if (!token2) {
           throw new Error('Unable to get ACTIONS_ID_TOKEN_REQUEST_TOKEN env variable');
         }
-        return token;
+        return token2;
       }
       static getIDTokenUrl() {
         const runtimeUrl = process.env['ACTIONS_ID_TOKEN_REQUEST_URL'];
@@ -3387,38 +3387,38 @@ var require_dist_node7 = __commonJS({
     var REGEX_IS_INSTALLATION_LEGACY = /^v1\./;
     var REGEX_IS_INSTALLATION = /^ghs_/;
     var REGEX_IS_USER_TO_SERVER = /^ghu_/;
-    async function auth(token) {
-      const isApp = token.split(/\./).length === 3;
-      const isInstallation = REGEX_IS_INSTALLATION_LEGACY.test(token) || REGEX_IS_INSTALLATION.test(token);
-      const isUserToServer = REGEX_IS_USER_TO_SERVER.test(token);
+    async function auth(token2) {
+      const isApp = token2.split(/\./).length === 3;
+      const isInstallation = REGEX_IS_INSTALLATION_LEGACY.test(token2) || REGEX_IS_INSTALLATION.test(token2);
+      const isUserToServer = REGEX_IS_USER_TO_SERVER.test(token2);
       const tokenType = isApp ? 'app' : isInstallation ? 'installation' : isUserToServer ? 'user-to-server' : 'oauth';
       return {
         type: 'token',
-        token,
+        token: token2,
         tokenType
       };
     }
-    function withAuthorizationPrefix(token) {
-      if (token.split(/\./).length === 3) {
-        return `bearer ${token}`;
+    function withAuthorizationPrefix(token2) {
+      if (token2.split(/\./).length === 3) {
+        return `bearer ${token2}`;
       }
-      return `token ${token}`;
+      return `token ${token2}`;
     }
-    async function hook(token, request, route, parameters) {
+    async function hook(token2, request, route, parameters) {
       const endpoint = request.endpoint.merge(route, parameters);
-      endpoint.headers.authorization = withAuthorizationPrefix(token);
+      endpoint.headers.authorization = withAuthorizationPrefix(token2);
       return request(endpoint);
     }
-    var createTokenAuth = function createTokenAuth2(token) {
-      if (!token) {
+    var createTokenAuth = function createTokenAuth2(token2) {
+      if (!token2) {
         throw new Error('[@octokit/auth-token] No token passed to createTokenAuth');
       }
-      if (typeof token !== 'string') {
+      if (typeof token2 !== 'string') {
         throw new Error('[@octokit/auth-token] Token passed to createTokenAuth is not a string');
       }
-      token = token.replace(/^(token|bearer) +/i, '');
-      return Object.assign(auth.bind(null, token), {
-        hook: hook.bind(null, token)
+      token2 = token2.replace(/^(token|bearer) +/i, '');
+      return Object.assign(auth.bind(null, token2), {
+        hook: hook.bind(null, token2)
       });
     };
   }
@@ -5266,16 +5266,18 @@ var requiredArgOptions = {
   required: true,
   trimWhitespace: true
 };
-var ghToken = core.getInput('github-token', requiredArgOptions);
+var workflow_actor = core.getInput('workflow-actor', requiredArgOptions);
+var token = core.getInput('token', requiredArgOptions);
 var environment = core.getInput('environment', requiredArgOptions);
 var [owner, repo] = core.getInput('project-slug', requiredArgOptions).split('/');
 var ref = core.getInput('ref', requiredArgOptions);
-var deployStatus = core.getInput('deploy-status', requiredArgOptions);
-var deploymentMessage = core.getInput('deployment-message', { required: false, trimWhitespace: true });
+var deployment_status = core.getInput('deployment-status', requiredArgOptions);
+var deployment_message = core.getInput('deployment-message', { required: false, trimWhitespace: true });
 var entities = core.getInput('entities', requiredArgOptions);
 var instance = core.getInput('instance', requiredArgOptions);
 var workflow_run_url = core.getInput('workflow-run-url', requiredArgOptions);
-var octokit = new Octokit({ auth: ghToken });
+var workflow_task = core.getInput('workflow-task', requiredArgOptions);
+var octokit = new Octokit({ auth: token });
 async function run() {
   const entitiesList = JSON.parse(entities.replace(/'/g, '"'));
   const deployment = (
@@ -5285,8 +5287,9 @@ async function run() {
       ref,
       auto_merge: false,
       environment,
-      task: 'workflowdeploy',
+      task: workflow_task,
       payload: {
+        workflow_actor,
         entities: entitiesList,
         instance,
         workflow_run_url
@@ -5297,8 +5300,8 @@ async function run() {
     owner,
     repo,
     deployment_id: deployment.id,
-    state: deployStatus,
-    description: deploymentMessage
+    state: deployment_status,
+    description: deployment_message
   });
   return deployment.id;
 }

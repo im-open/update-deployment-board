@@ -2,7 +2,10 @@ name: Update Deployment Board
 description: Adds deployment Issues to an Automated Deployment Project Board for visual tracking of what has been deployed to each environment.
 
 inputs:
-  github-token:
+  workflow-actor:
+    description: The GitHub user who triggered the workflow
+    required: true
+  token:
     description: A token with permissions to create and update issues
     required: true
   environment:
@@ -14,7 +17,7 @@ inputs:
   ref:
     description: The branch, tag or SHA that was deployed
     required: true
-  deploy-status:
+  deployment-status:
     description: The status of the deployment [error|failure|success]
     required: true
   deployment-message:
@@ -29,6 +32,10 @@ inputs:
   workflow-run-url:
     description: The url of the workflow run, i.e."https://github.com/[owner]/[repo]/actions/runs/[workflow run id]"
     required: true
+  workflow-task:
+    description: The task designation for the deployment, defaults to `workflowdeploy`                                     |
+    required: true
+    default: workflowdeploy
 
 outputs:
   github-deployment-id:

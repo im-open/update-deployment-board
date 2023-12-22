@@ -6,16 +6,18 @@ const requiredArgOptions = {
   trimWhitespace: true
 };
 
-const ghToken = core.getInput('github-token', requiredArgOptions);
+const workflow_actor = core.getInput('workflow-actor', requiredArgOptions);
+const token = core.getInput('token', requiredArgOptions);
 const environment = core.getInput('environment', requiredArgOptions);
 const [owner, repo] = core.getInput('project-slug', requiredArgOptions).split('/');
 const ref = core.getInput('ref', requiredArgOptions);
-const deployStatus = core.getInput('deploy-status', requiredArgOptions);
-const deploymentMessage = core.getInput('deployment-message', { required: false, trimWhitespace: true });
+const deployment_status = core.getInput('deployment-status', requiredArgOptions);
+const deployment_message = core.getInput('deployment-message', { required: false, trimWhitespace: true });
 const entities = core.getInput('entities', requiredArgOptions);
 const instance = core.getInput('instance', requiredArgOptions);
 const workflow_run_url = core.getInput('workflow-run-url', requiredArgOptions);
-const octokit = new Octokit({ auth: ghToken });
+const workflow_task = core.getInput('workflow-task', requiredArgOptions);
+const octokit = new Octokit({ auth: token });
 
 async function run() {
   // create deployment record
@@ -28,8 +30,10 @@ async function run() {
       ref: ref,
       auto_merge: false,
       environment: environment,
-      task: 'workflowdeploy',
+      task: workflow_task,
+
       payload: {
+        workflow_actor: workflow_actor,
         entities: entitiesList,
         instance: instance,
         workflow_run_url: workflow_run_url
@@ -42,8 +46,8 @@ async function run() {
     owner: owner,
     repo: repo,
     deployment_id: deployment.id,
-    state: deployStatus,
-    description: deploymentMessage
+    state: deployment_status,
+    description: deployment_message
   });
 
   //return deployment id
