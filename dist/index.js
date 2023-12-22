@@ -5289,10 +5289,10 @@ async function run() {
       environment,
       task: workflow_task,
       payload: {
-        workflow_actor,
         entities: entitiesList,
         instance,
-        workflow_run_url
+        workflow_run_url,
+        workflow_actor
       }
     })
   ).data;

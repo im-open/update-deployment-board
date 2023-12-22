@@ -33,10 +33,10 @@ async function run() {
       task: workflow_task,
 
       payload: {
-        workflow_actor: workflow_actor,
         entities: entitiesList,
         instance: instance,
-        workflow_run_url: workflow_run_url
+        workflow_run_url: workflow_run_url,
+        workflow_actor: workflow_actor
       }
     })
   ).data;
