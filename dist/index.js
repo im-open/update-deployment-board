@@ -5285,9 +5285,9 @@ async function run() {
       owner,
       repo,
       ref,
-      auto_merge: false,
       environment,
       task: workflow_task,
+      auto_merge: false,
       payload: {
         entities: entitiesList,
         instance,
@@ -5301,7 +5301,8 @@ async function run() {
     repo,
     deployment_id: deployment.id,
     state: deployment_status,
-    description: deployment_message
+    description: deployment_message,
+    auto_inactive: false
   });
   return deployment.id;
 }

@@ -28,9 +28,9 @@ async function run() {
       owner: owner,
       repo: repo,
       ref: ref,
-      auto_merge: false,
       environment: environment,
       task: workflow_task,
+      auto_merge: false,
 
       payload: {
         entities: entitiesList,
@@ -47,7 +47,8 @@ async function run() {
     repo: repo,
     deployment_id: deployment.id,
     state: deployment_status,
-    description: deployment_message
+    description: deployment_message,
+    auto_inactive: false
   });
 
   //return deployment id
