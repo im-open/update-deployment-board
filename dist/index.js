@@ -5266,13 +5266,18 @@ var requiredArgOptions = {
   required: true,
   trimWhitespace: true
 };
+var notRequiredArgOptions = {
+  required: false,
+  trimWhitespace: true
+};
 var workflow_actor = core.getInput('workflow-actor', requiredArgOptions);
 var token = core.getInput('token', requiredArgOptions);
 var environment = core.getInput('environment', requiredArgOptions);
 var [owner, repo] = core.getInput('project-slug', requiredArgOptions).split('/');
 var ref = core.getInput('ref', requiredArgOptions);
 var deployment_status = core.getInput('deployment-status', requiredArgOptions);
-var deployment_message = core.getInput('deployment-message', { required: false, trimWhitespace: true });
+var deployment_message = core.getInput('deployment-message', notRequiredArgOptions);
+var deployment_auto_inactivate = core.getInput('deployment-auto-inactivate', notRequiredArgOptions) == 'true';
 var entities = core.getInput('entities', requiredArgOptions);
 var instance = core.getInput('instance', requiredArgOptions);
 var workflow_run_url = core.getInput('workflow-run-url', requiredArgOptions);
@@ -5302,7 +5307,7 @@ async function run() {
     deployment_id: deployment.id,
     state: deployment_status,
     description: deployment_message,
-    auto_inactive: false
+    auto_inactive: deployment_auto_inactivate
   });
   return deployment.id;
 }

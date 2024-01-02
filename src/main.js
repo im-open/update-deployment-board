@@ -6,13 +6,19 @@ const requiredArgOptions = {
   trimWhitespace: true
 };
 
+const notRequiredArgOptions = {
+  required: false,
+  trimWhitespace: true
+};
+
 const workflow_actor = core.getInput('workflow-actor', requiredArgOptions);
 const token = core.getInput('token', requiredArgOptions);
 const environment = core.getInput('environment', requiredArgOptions);
 const [owner, repo] = core.getInput('project-slug', requiredArgOptions).split('/');
 const ref = core.getInput('ref', requiredArgOptions);
 const deployment_status = core.getInput('deployment-status', requiredArgOptions);
-const deployment_message = core.getInput('deployment-message', { required: false, trimWhitespace: true });
+const deployment_message = core.getInput('deployment-message', notRequiredArgOptions);
+const deployment_auto_inactivate = core.getInput('deployment-auto-inactivate', notRequiredArgOptions) == 'true';
 const entities = core.getInput('entities', requiredArgOptions);
 const instance = core.getInput('instance', requiredArgOptions);
 const workflow_run_url = core.getInput('workflow-run-url', requiredArgOptions);
@@ -48,7 +54,7 @@ async function run() {
     deployment_id: deployment.id,
     state: deployment_status,
     description: deployment_message,
-    auto_inactive: false
+    auto_inactive: deployment_auto_inactivate
   });
 
   //return deployment id

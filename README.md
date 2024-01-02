@@ -29,19 +29,20 @@ When the action runs it will add a deployment and deployment status record to th
 
 ## Inputs
 
-| Parameter            | Is Required | Description                                                                                               |
-| -------------------- | ----------- | --------------------------------------------------------------------------------------------------------- |
-| `workflow-actor`     | true        | The GitHub user who triggered the workflow                                                                |
-| `token`              | true        | A GitHub token with permissions to create and update issues                                               |
-| `environment`        | true        | The environment the branch, tag or SHA was deployed to, i.e. [DEV\|QA\|STAGE\|DEMO\|UAT\|PROD]            |
-| `project-slug`       | true        | The repo the deployment will be created in, i.e. [org\|owner]/[repo name]                                 |
-| `ref`                | true        | The branch, tag or SHA that was deployed                                                                  |
-| `deploy-status`      | true        | The status of the deployment [error\|failure\|success]                                                    |
-| `deployment-message` | false       | Any message to be delivered along side of the status                                                      |
-| `entities`           | true        | The entities that are affected by the deployment, i.e. ["proj-app", "proj-infrastruction", "proj-db"]     |
-| `instance`           | true        | The target deployment server or app service and availability zone, i.e. "NA26", "NA26-slot1", "NA27-blue" |
-| `workflow-run-url`   | true        | The url of the workflow run, i.e."https://github.com/[owner]/[repo]/actions/runs/[workflow run id]"       |
-| `workflow-task`      | false       | The task designation for the deployment, defaults to `workflowdeploy`                                     |
+| Parameter                    | Is Required | Description                                                                                                                                                                     |
+| ---------------------------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `workflow-actor`             | true        | The GitHub user who triggered the workflow                                                                                                                                      |
+| `token`                      | true        | A GitHub token with permissions to create and update issues                                                                                                                     |
+| `environment`                | true        | The environment the branch, tag or SHA was deployed to, i.e. [DEV\|QA\|STAGE\|DEMO\|UAT\|PROD]                                                                                  |
+| `project-slug`               | true        | The repo the deployment will be created in, i.e. [org\|owner]/[repo name]                                                                                                       |
+| `ref`                        | true        | The branch, tag or SHA that was deployed                                                                                                                                        |
+| `deploy-status`              | true        | The status of the deployment [error\|failure\|success]                                                                                                                          |
+| `deployment-message`         | false       | Any message to be delivered along side of the status                                                                                                                            |
+| `deployment-auto-inactivate` | false       | Automatically mark prior environment deployments inactive, only use `true` for environments that do not have multiple instances, expects `true` or `false`, defaults to `false` |
+| `entities`                   | true        | The entities that are affected by the deployment, i.e. ["proj-app", "proj-infrastruction", "proj-db"]                                                                           |
+| `instance`                   | true        | The target deployment server or app service and availability zone, i.e. "NA26", "NA26-slot1", "NA27-blue"                                                                       |
+| `workflow-run-url`           | true        | The url of the workflow run, i.e."https://github.com/[owner]/[repo]/actions/runs/[workflow run id]"                                                                             |
+| `workflow-task`              | false       | The task designation for the deployment, defaults to `workflowdeploy`                                                                                                           |
 
 ## Outputs
 

@@ -23,6 +23,12 @@ inputs:
   deployment-message:
     description: Any message to be delivered along side of the status
     required: false
+  deployment-auto-inactivate:
+    description: |
+      Automatically mark prior environment deployments inactive, only use 'true' for environments that do not
+      have multiple instances, expects 'true' or 'false', defaults to 'false'
+    required: false
+    default: 'false'
   entities:
     description: The entities that are affected by the deployment, i.e. ["proj-app", "proj-infrastruction", "proj-db"]
     required: true
