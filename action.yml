@@ -35,10 +35,6 @@ inputs:
   workflow-run-url:
     description: The url of the workflow run, i.e."https://github.com/[owner]/[repo]/actions/runs/[workflow run id]"
     required: true
-  workflow-task:
-    description: The task designation for the deployment, defaults to `workflowdeploy`                                     |
-    required: true
-    default: workflowdeploy
 
 outputs:
   github-deployment-id:

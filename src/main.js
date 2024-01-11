@@ -22,7 +22,6 @@ const deployment_auto_inactivate = core.getInput('deployment-auto-inactivate', n
 const entity = core.getInput('entity', requiredArgOptions);
 const instance = core.getInput('instance', requiredArgOptions);
 const workflow_run_url = core.getInput('workflow-run-url', requiredArgOptions);
-const workflow_task = core.getInput('workflow-task', requiredArgOptions);
 const octokit = new Octokit({ auth: token });
 const owner = github.context.owner;
 const repo = github.context.repo;
@@ -35,7 +34,7 @@ async function run() {
       repo: repo,
       ref: release_ref,
       environment: environment,
-      task: workflow_task,
+      task: 'workflowdeploy',
       auto_merge: false,
 
       payload: {

@@ -34,16 +34,16 @@ When the action runs it will add a deployment and deployment status record to th
 | Parameter                    | Is Required | Description                                                                                                                                                                                         |
 | ---------------------------- | ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `workflow-actor`             | true        | The GitHub user who triggered the workflow                                                                                                                                                          |
-| `token`                      | true        | A token with `repo_deployment` permissions to create and update issues, workflows using this action should be granted `permissions` of `deployments: write` issues                                  |
-| `environment`                | true        | The environment the branch, tag or SHA was deployed to, i.e. [DEV\|QA\|STAGE\|DEMO\|UAT\|PROD]                                                                                                      |
-| `ref`                        | true        | The branch, tag or SHA that was deployed                                                                                                                                                            |
-| `deploy-status`              | true        | The status of the deployment [error\|failure\|success]                                                                                                                                              |
+| `token`                      | true        | A token with `repo_deployment` permissions to create and update issues, workflows using this action should be granted `permissions` of `deployments: write`                                         |
+| `environment`                | true        | The environment the release was deployed to, i.e. [DEV\|QA\|STAGE\|DEMO\|UAT\|PROD]                                                                                                                 |
+| `release-ref`                | true        | The branch, tag or SHA that was deployed                                                                                                                                                            |
+| `deployment-status`          | true        | The status of the deployment [error\|failure\|success]                                                                                                                                              |
 | `deployment-description`     | false       | Any description or message about the deployment                                                                                                                                                     |
-| `deployment-auto-inactivate` | false       | Automatically mark prior environment deployments inactive, only use `true` for environments that do not have multiple instances, expects `true` or `false`, defaults to `false`                     |
-| `entity`                     | true        | The entity that was deployed, i.e. "proj-app", "proj-infrastruction" or "proj-db"                                                                                                                   |
+| `deployment-auto-inactivate` | false       | Automatically mark prior environment deployments inactive, only use 'true' for environments that do not have multiple instances, expects 'true' or 'false', defaults to 'false'                     |
+| `entity`                     | true        | The entity that is deployed, i.e. "proj-app", "proj-infrastruction" or "proj-db"                                                                                                                    |
 | `instance`                   | true        | A freeform identifier to distinguish separately deployed instances of the entity in the same environment. Typical uses would be to name a slot and/or region, e.g "NA26", "NA26-slot1", "NA27-blue" |
 | `workflow-run-url`           | true        | The url of the workflow run, i.e."https://github.com/[owner]/[repo]/actions/runs/[workflow run id]"                                                                                                 |
-| `workflow-task`              | false       | The task designation for the deployment, defaults to `workflowdeploy`                                                                                                                               |
+
 
 ## Outputs
 
@@ -62,6 +62,11 @@ on:
         description: 'The branch, tag or sha to deploy '
         required: false
 
+# Permissions needed to add GitHub Deployment and Deployment
+# status objects
+permissions:
+  deployments: write
+
 jobs:
   environment: 'QA'
   deploy-different-ways:
@@ -77,20 +82,18 @@ jobs:
         # Defaults to using github-actions for the login, regex matching to determine the ref-type and times shown in UTC
       - name: Update deployment board with Defaults
         id: defaults
-        continue-on-error: true                                  # Setting to true so the job doesn't fail if updating the board fails.
-        uses: im-open/update-deployment-board@v2.0.0             # You may also reference just the major or major.minor version
+        continue-on-error: true                                      # Setting to true so the job doesn't fail if updating the board fails.
+        uses: im-open/update-deployment-board@v2.0.0                 # You may also reference just the major or major.minor version
         with:
-          workflow-actor: ${{ github.actor }}             # This will add the user who kicked off the workflow to the deployment payload
-          token: ${{ secrets.GITHUB_TOKEN }}              # If a different token is used, update github-login with the corresponding account
+          workflow-actor: ${{ github.actor }}                        # This will add the user who kicked off the workflow to the deployment payload
+          token: ${{ secrets.GITHUB_TOKEN }}                         # If a different token is used, update github-login with the corresponding account
           environment: 'QA'
-          project-slug: ${{ github.repository }}                 # Expects [org|owner]/[repo name]
           ref: ${{ github.event.inputs.branchTagOrSha }}
-          deploy-status: ${{ steps.deploy-to-qa.outcome }}       # outcome is the result of the step before continue-on-error is applied, i.e. [error|failure|success]
-          deployment-message: ${{ steps.deploy-to-qa.outcome }}  # information that may add supporting information to the status/result
-          entities: '["tech-hub-git-hub-deployments-experiment"]'
+          deploy-status: ${{ steps.deploy-to-qa.outcome }}           # outcome is the result of the step before continue-on-error is applied, i.e. [error|failure|success]
+          deployment-description: ${{ steps.deploy-to-qa.outcome }}  # information that may add supporting information to the status/result
+          entity: deployments-experiment
           instance: ${{ inputs.instance }}
           workflow-run-url: '${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}'
-          #workflow-task: 'workflowdeploy'                        # defaults to workflowdeploy
 
       - name: Now Fail the job if the deploy step failed
         if: steps.deploy-to-qa.outcome == 'failure'
