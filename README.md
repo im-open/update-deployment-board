@@ -6,11 +6,13 @@ The `deployment.payload` is customized to have these values included:
 ```json
 payload: {
   workflow_actor: <<workflow-actor>>,
-  entities: <<entities-list>>,
+  entity: <<entity>>,
   instance: <<instance>>,
   workflow_run_url: <<workflow-run-url>>
 }
 ```
+
+The  `entity` value is used by the [Backstage Software Catalog] and particularly for the Tech Hub implementation of the Git Hub Deployments plugin,
 
 ## Index <!-- omit in toc -->
 
@@ -29,20 +31,19 @@ When the action runs it will add a deployment and deployment status record to th
 
 ## Inputs
 
-| Parameter                    | Is Required | Description                                                                                                                                                                     |
-| ---------------------------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `workflow-actor`             | true        | The GitHub user who triggered the workflow                                                                                                                                      |
-| `token`                      | true        | A GitHub token with permissions to create and update issues                                                                                                                     |
-| `environment`                | true        | The environment the branch, tag or SHA was deployed to, i.e. [DEV\|QA\|STAGE\|DEMO\|UAT\|PROD]                                                                                  |
-| `project-slug`               | true        | The repo the deployment will be created in, i.e. [org\|owner]/[repo name]                                                                                                       |
-| `ref`                        | true        | The branch, tag or SHA that was deployed                                                                                                                                        |
-| `deploy-status`              | true        | The status of the deployment [error\|failure\|success]                                                                                                                          |
-| `deployment-message`         | false       | Any message to be delivered along side of the status                                                                                                                            |
-| `deployment-auto-inactivate` | false       | Automatically mark prior environment deployments inactive, only use `true` for environments that do not have multiple instances, expects `true` or `false`, defaults to `false` |
-| `entities`                   | true        | The entities that are affected by the deployment, i.e. ["proj-app", "proj-infrastruction", "proj-db"]                                                                           |
-| `instance`                   | true        | The target deployment server or app service and availability zone, i.e. "NA26", "NA26-slot1", "NA27-blue"                                                                       |
-| `workflow-run-url`           | true        | The url of the workflow run, i.e."https://github.com/[owner]/[repo]/actions/runs/[workflow run id]"                                                                             |
-| `workflow-task`              | false       | The task designation for the deployment, defaults to `workflowdeploy`                                                                                                           |
+| Parameter                    | Is Required | Description                                                                                                                                                                                         |
+| ---------------------------- | ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `workflow-actor`             | true        | The GitHub user who triggered the workflow                                                                                                                                                          |
+| `token`                      | true        | A token with `repo_deployment` permissions to create and update issues, workflows using this action should be granted `permissions` of `deployments: write` issues                                  |
+| `environment`                | true        | The environment the branch, tag or SHA was deployed to, i.e. [DEV\|QA\|STAGE\|DEMO\|UAT\|PROD]                                                                                                      |
+| `ref`                        | true        | The branch, tag or SHA that was deployed                                                                                                                                                            |
+| `deploy-status`              | true        | The status of the deployment [error\|failure\|success]                                                                                                                                              |
+| `deployment-description`     | false       | Any description or message about the deployment                                                                                                                                                     |
+| `deployment-auto-inactivate` | false       | Automatically mark prior environment deployments inactive, only use `true` for environments that do not have multiple instances, expects `true` or `false`, defaults to `false`                     |
+| `entity`                     | true        | The entity that was deployed, i.e. "proj-app", "proj-infrastruction" or "proj-db"                                                                                                                   |
+| `instance`                   | true        | A freeform identifier to distinguish separately deployed instances of the entity in the same environment. Typical uses would be to name a slot and/or region, e.g "NA26", "NA26-slot1", "NA27-blue" |
+| `workflow-run-url`           | true        | The url of the workflow run, i.e."https://github.com/[owner]/[repo]/actions/runs/[workflow run id]"                                                                                                 |
+| `workflow-task`              | false       | The task designation for the deployment, defaults to `workflowdeploy`                                                                                                                               |
 
 ## Outputs
 
@@ -147,6 +148,7 @@ This project has adopted the [im-open's Code of Conduct](https://github.com/im-o
 Copyright &copy; 2023, Extend Health, LLC. Code released under the [MIT license](LICENSE).
 
 <!-- Links -->
+[Backstage Software Catalog]: https://backstage.io/docs/features/software-catalog/
 [Incrementing the Version]: #incrementing-the-version
 [Recompiling Manually]: #recompiling-manually
 [Updating the README.md]: #updating-the-readmemd

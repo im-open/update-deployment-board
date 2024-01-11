@@ -6,22 +6,19 @@ inputs:
     description: The GitHub user who triggered the workflow
     required: true
   token:
-    description: A token with permissions to create and update issues
+    description: 'A token with `repo_deployment` permissions to create and update issues, workflows using this action should be granted `permissions` of `deployments: write`'
     required: true
   environment:
-    description: The environment the branch, tag or SHA was deployed to, i.e. [DEV|QA|STAGE|DEMO|UAT|PROD]
+    description: The environment the release was deployed to, i.e. [DEV|QA|STAGE|DEMO|UAT|PROD]
     required: true
-  project-slug:
-    description: The repo the deployment will be created in, i.e. [org|owner]/[repo name]
-    required: true
-  ref:
+  release-ref:
     description: The branch, tag or SHA that was deployed
     required: true
   deployment-status:
     description: The status of the deployment [error|failure|success]
     required: true
-  deployment-message:
-    description: Any message to be delivered along side of the status
+  deployment-description:
+    description: Any description or message about the deployment
     required: false
   deployment-auto-inactivate:
     description: |
@@ -29,11 +26,11 @@ inputs:
       have multiple instances, expects 'true' or 'false', defaults to 'false'
     required: false
     default: 'false'
-  entities:
-    description: The entities that are affected by the deployment, i.e. ["proj-app", "proj-infrastruction", "proj-db"]
+  entity:
+    description: The entity that is deployed, i.e. "proj-app", "proj-infrastruction" or "proj-db"
     required: true
   instance:
-    description: The target deployment server or app service and availability zone, i.e. "NA26", "NA26-slot1", "NA27-blue"
+    description: A freeform identifier to distinguish separately deployed instances of the entity in the same environment. Typical uses would be to name a slot and/or region, e.g "NA26", "NA26-slot1", "NA27-blue"
     required: true
   workflow-run-url:
     description: The url of the workflow run, i.e."https://github.com/[owner]/[repo]/actions/runs/[workflow run id]"
@@ -45,7 +42,7 @@ inputs:
 
 outputs:
   github-deployment-id:
-    description: The id of the of the Git deployment.
+    description: The id of the GitHub deployment object
 
 runs:
   using: node20
