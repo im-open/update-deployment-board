@@ -23,8 +23,8 @@ const entity = core.getInput('entity', requiredArgOptions);
 const instance = core.getInput('instance', requiredArgOptions);
 const workflow_run_url = core.getInput('workflow-run-url', requiredArgOptions);
 const octokit = new Octokit({ auth: token });
-const owner = github.context.owner;
-const repo = github.context.repo;
+const owner = github.context.repo.owner;
+const repo = github.context.repo.repo;
 
 async function run() {
   // create deployment record

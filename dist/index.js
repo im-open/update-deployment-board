@@ -36672,8 +36672,8 @@ var entity = core.getInput('entity', requiredArgOptions);
 var instance = core.getInput('instance', requiredArgOptions);
 var workflow_run_url = core.getInput('workflow-run-url', requiredArgOptions);
 var octokit = new Octokit({ auth: token });
-var owner = github.context.owner;
-var repo = github.context.repo;
+var owner = github.context.repo.owner;
+var repo = github.context.repo.repo;
 async function run() {
   const deployment = (
     await octokit.rest.repos.createDeployment({
