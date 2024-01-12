@@ -1,11 +1,14 @@
 const { Octokit } = require('@octokit/rest');
-const WORKFLOW_DEPLOY = 'workflowdeploy';
 const { Octokit: OctokitGraphQl } = require('@octokit/graphql');
-const { add } = require('date-fns');
+const WORKFLOW_DEPLOY = 'workflowdeploy';
 
 async function inactivatePriorDeployments(context, currentDeploymentNodeId) {
   const octokit = new Octokit({ auth: context.token });
-  const octokitGraphQl = new OctokitGraphQl({ auth: context.token });
+  const octokitGraphQl = OctokitGraphQl.defaults({
+    headaders: {
+      authorization: `token ${context.token}`
+    }
+  });
 
   const params = {
     owner,
