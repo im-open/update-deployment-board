@@ -4008,7 +4008,7 @@ var require_util2 = __commonJS({
       if (parsedMetadata.length === 0) {
         return true;
       }
-      const list = parsedMetadata.sort((c, d2) => d2.algo.localeCompare(c.algo));
+      const list = parsedMetadata.sort((c, d) => d.algo.localeCompare(c.algo));
       const strongest = list[0].algo;
       const metadata = list.filter(item => item.algo === strongest);
       for (const item of metadata) {
@@ -4941,7 +4941,7 @@ var require_file = __commonJS({
         options = webidl.converters.FilePropertyBag(options);
         const n = fileName;
         let t = options.type;
-        let d2;
+        let d;
         substep: {
           if (t) {
             t = parseMIMEType(t);
@@ -4951,12 +4951,12 @@ var require_file = __commonJS({
             }
             t = serializeAMimeType(t).toLowerCase();
           }
-          d2 = options.lastModified;
+          d = options.lastModified;
         }
         super(processBlobParts(fileBits, options), { type: t });
         this[kState] = {
           name: n,
-          lastModified: d2,
+          lastModified: d,
           type: t
         };
       }
@@ -4977,12 +4977,12 @@ var require_file = __commonJS({
       constructor(blobLike, fileName, options = {}) {
         const n = fileName;
         const t = options.type;
-        const d2 = options.lastModified ?? Date.now();
+        const d = options.lastModified ?? Date.now();
         this[kState] = {
           blobLike,
           name: n,
           type: t,
-          lastModified: d2
+          lastModified: d
         };
       }
       stream(...args) {
@@ -18703,8 +18703,8 @@ var require_context = __commonJS({
       }
       get repo() {
         if (process.env.GITHUB_REPOSITORY) {
-          const [owner2, repo2] = process.env.GITHUB_REPOSITORY.split('/');
-          return { owner: owner2, repo: repo2 };
+          const [owner, repo] = process.env.GITHUB_REPOSITORY.split('/');
+          return { owner, repo };
         }
         if (this.payload.repository) {
           return {
@@ -20481,7 +20481,7 @@ var require_util9 = __commonJS({
       if (parsedMetadata.length === 0) {
         return true;
       }
-      const list = parsedMetadata.sort((c, d2) => d2.algo.localeCompare(c.algo));
+      const list = parsedMetadata.sort((c, d) => d.algo.localeCompare(c.algo));
       const strongest = list[0].algo;
       const metadata = list.filter(item => item.algo === strongest);
       for (const item of metadata) {
@@ -21225,7 +21225,7 @@ var require_file2 = __commonJS({
         options = webidl.converters.FilePropertyBag(options);
         const n = fileName;
         let t = options.type;
-        let d2;
+        let d;
         substep: {
           if (t) {
             t = parseMIMEType(t);
@@ -21235,12 +21235,12 @@ var require_file2 = __commonJS({
             }
             t = serializeAMimeType(t).toLowerCase();
           }
-          d2 = options.lastModified;
+          d = options.lastModified;
         }
         super(processBlobParts(fileBits, options), { type: t });
         this[kState] = {
           name: n,
-          lastModified: d2,
+          lastModified: d,
           type: t
         };
       }
@@ -21261,12 +21261,12 @@ var require_file2 = __commonJS({
       constructor(blobLike, fileName, options = {}) {
         const n = fileName;
         const t = options.type;
-        const d2 = options.lastModified ?? Date.now();
+        const d = options.lastModified ?? Date.now();
         this[kState] = {
           blobLike,
           name: n,
           type: t,
-          lastModified: d2
+          lastModified: d
         };
       }
       stream(...args) {
@@ -36587,8 +36587,8 @@ var require_library = __commonJS({
         entity,
         instance,
         workflow_run_url,
-        owner2,
-        repo2
+        owner,
+        repo
       ) {
         this.workflow_actor = workflow_actor;
         this.token = token;
@@ -36600,8 +36600,8 @@ var require_library = __commonJS({
         this.entity = entity;
         this.instance = instance;
         this.workflow_run_url = workflow_run_url;
-        this.owner = owner2;
-        this.repo = repo2;
+        this.owner = owner;
+        this.repo = repo;
       }
     };
     function setup2() {
@@ -36615,8 +36615,8 @@ var require_library = __commonJS({
       const entity = core2.getInput('entity', requiredArgOptions);
       const instance = core2.getInput('instance', requiredArgOptions);
       const workflow_run_url = core2.getInput('workflow-run-url', requiredArgOptions);
-      const owner2 = github.context.repo.owner;
-      const repo2 = github.context.repo.repo;
+      const owner = github.context.repo.owner;
+      const repo = github.context.repo.repo;
       return new context(
         workflow_actor,
         token,
@@ -36628,8 +36628,8 @@ var require_library = __commonJS({
         entity,
         instance,
         workflow_run_url,
-        owner2,
-        repo2
+        owner,
+        repo
       );
     }
     module2.exports = {
@@ -36729,32 +36729,34 @@ var require_dist_node12 = __commonJS({
 var require_deployments = __commonJS({
   'src/deployments.js'(exports2, module2) {
     var { Octokit } = require_dist_node12();
-    var { Octokit: OctokitGraphQl } = require_dist_node6();
+    var { graphql } = require_dist_node6();
     var WORKFLOW_DEPLOY = 'workflowdeploy';
     async function inactivatePriorDeployments(context, currentDeploymentNodeId) {
+      console.log('inactivePriorDeployments currentDeploymentNodeId: ', currentDeploymentNodeId);
       const octokit = new Octokit({ auth: context.token });
-      const octokitGraphQl = OctokitGraphQl.defaults({
-        headaders: {
+      const octokitGraphQl = graphql.defaults({
+        headers: {
           authorization: `token ${context.token}`
         }
       });
       const params = {
-        owner,
-        repo,
+        owner: context.owner,
+        repo: context.repo,
         task: WORKFLOW_DEPLOY,
         environment: context.environment,
         per_page: 100
       };
-      const deploymentNodeIds = (await octokit.paginate(octokit.rest.repos.listDeployments, params))
-        .filter(d2 => d2.node_id != currentDeploymentNodeId && d2.payload.entity == context.entity && d2.payload.instance == context.instance)
-        .map(d2 => d2.node_id);
+      const deploymentsList = (await octokit.paginate(octokit.rest.repos.listDeployments, params)).filter(
+        d => d.node_id != currentDeploymentNodeId && d.payload.entity == context.entity && d.payload.instance == context.instance
+      );
+      const deploymentNodeIds = deploymentsList.map(d => d.node_id);
+      console.log('inactivatePriorDeployments deploymentNodeIds: ', deploymentNodeIds);
       const statusesQuery = `
       query($deploymentNodeIds: [ID!]!) {
         deployments: nodes(ids: $deploymentNodeIds) {
           ... on Deployment {
             id
-            datbaseId
-            environment
+            databaseId
             statuses(first:1) {
               nodes {
                 description
@@ -36766,12 +36768,17 @@ var require_deployments = __commonJS({
         }
       }`;
       const statuses = await octokitGraphQl(statusesQuery, { deploymentNodeIds });
-      for (let i = 0; i < d.deployments.length; i++) {
-        const deployment = d.deployments[i];
-        for (let j = 0; j < deployment.statuses.nodes.length; j++) {
-          const status = deployment.statuses.nodes[j];
-          if (status.state == 'SUCCESS') {
-            createDeploymentStatus(octokit, context.owner, context.repo, deployment.databaseId, 'INACTIVE', 'Inactivated by workflow');
+      console.log('inactivatePriorDeployments statuses: ', statuses);
+      for (let i = 0; i < statuses.deployments.length; i++) {
+        let deploymentQl = statuses.deployments[i];
+        let deployment = deploymentsList.filter(d => d.node_id == deploymentQl.id)[0];
+        for (let j = 0; j < deploymentQl.statuses.nodes.length; j++) {
+          const status = deploymentQl.statuses.nodes[j];
+          console.log('inactivate deploymentQl: ', deploymentQl);
+          console.log('inactivate deployment: ', deployment);
+          console.log('inactivate status: ', status);
+          if (deployment.payload.instance == context.instance && status.state == 'SUCCESS') {
+            await createDeploymentStatus(octokit, context.owner, context.repo, deployment.id, 'inactive', 'Inactivated by workflow');
           }
         }
       }
@@ -36794,20 +36801,24 @@ var require_deployments = __commonJS({
           }
         })
       ).data;
-      createDeploymentStatus(octokit, context.owner, context.repo, deployment.id, context.deployment_status, context.deployment_description);
-      inactivatePriorDeployments(deployment.node_id);
+      const inactivate = new Promise((resolve, reject) => resolve(inactivatePriorDeployments(context, deployment.node_id)));
+      inactivate.then(async () => {
+        await createDeploymentStatus(octokit, context.owner, context.repo, deployment.id, context.deployment_status, context.deployment_description);
+      });
       return deployment.id;
     }
-    async function createDeploymentStatus(octokit, owner2, repo2, deployment_id, state, description) {
-      const status = await octokit.rest.repos.createDeploymentStatus({
-        owner: owner2,
-        repo: repo2,
+    async function createDeploymentStatus(octokit, owner, repo, deployment_id, state, description) {
+      const statusParams = {
+        owner,
+        repo,
         deployment_id,
         state,
         description,
         auto_inactive: false
         // we will manually inactivate prior deployments
-      });
+      };
+      console.log('createDeploymentStatus statusParams: ', statusParams);
+      const status = await octokit.rest.repos.createDeploymentStatus(statusParams);
     }
     module2.exports = {
       createDeployment: createDeployment2
