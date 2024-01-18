@@ -3,8 +3,6 @@ const { graphql } = require('@octokit/graphql');
 const WORKFLOW_DEPLOY = 'workflowdeploy';
 
 async function inactivatePriorDeployments(context, currentDeploymentNodeId) {
-  console.log('inactivePriorDeployments currentDeploymentNodeId: ', currentDeploymentNodeId);
-
   const octokit = new Octokit({ auth: context.token });
   const octokitGraphQl = graphql.defaults({
     headers: {
@@ -25,9 +23,6 @@ async function inactivatePriorDeployments(context, currentDeploymentNodeId) {
   );
 
   const deploymentNodeIds = deploymentsList.map(d => d.node_id);
-
-  console.log('inactivatePriorDeployments deploymentNodeIds: ', deploymentNodeIds);
-
   const statusesQuery = `
       query($deploymentNodeIds: [ID!]!) {
         deployments: nodes(ids: $deploymentNodeIds) {
@@ -46,7 +41,6 @@ async function inactivatePriorDeployments(context, currentDeploymentNodeId) {
       }`;
 
   const statuses = await octokitGraphQl(statusesQuery, { deploymentNodeIds: deploymentNodeIds });
-  console.log('inactivatePriorDeployments statuses: ', statuses);
 
   for (let i = 0; i < statuses.deployments.length; i++) {
     let deploymentQl = statuses.deployments[i];
@@ -54,10 +48,6 @@ async function inactivatePriorDeployments(context, currentDeploymentNodeId) {
 
     for (let j = 0; j < deploymentQl.statuses.nodes.length; j++) {
       const status = deploymentQl.statuses.nodes[j];
-
-      console.log('inactivate deploymentQl: ', deploymentQl);
-      console.log('inactivate deployment: ', deployment);
-      console.log('inactivate status: ', status);
 
       if (deployment.payload.instance == context.instance && status.state == 'SUCCESS') {
         await createDeploymentStatus(octokit, context.owner, context.repo, deployment.id, 'inactive', 'Inactivated by workflow');
@@ -105,7 +95,6 @@ async function createDeploymentStatus(octokit, owner, repo, deployment_id, state
     description: description,
     auto_inactive: false // we will manually inactivate prior deployments
   };
-  console.log('createDeploymentStatus statusParams: ', statusParams);
   const status = await octokit.rest.repos.createDeploymentStatus(statusParams);
 }
 module.exports = {
