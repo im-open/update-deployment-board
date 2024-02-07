@@ -1,3 +1,7 @@
+# DEPRECATED
+
+This action was deprecated on 2024-02-07 and will no longer receive support or updates.
+
 # update-deployment-board
 
 This action creates a visual representation of deployments on a Project board in your GitHub repository.  When this action is included in a workflow that does a deployment it will generate or update an existing issue and include it on the specified project board.  
